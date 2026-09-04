@@ -49,6 +49,9 @@ for i in range(num_iterations):
         if (chosen_particle.item() < 2):
             # To avoid picking 3rd charge for non doublet and neutrino
             generation_logits.masked_fill_(torch.tensor([False, False, True]), 1e-9)
+        # MASK ACTIONS THAT EXCEED BOUNDS!!!!!!!!!
+        # !!!!
+        # >:(
 
         generation_distr = torch.distributions.Categorical(logits=generation_logits)
         chosen_generation = generation_distr.sample()

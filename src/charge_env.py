@@ -19,9 +19,7 @@ class Charge_Env(gym.Env):
                                  "modify_charge":gym.spaces.Discrete(2, dtype=np.int32),
                                 }
                             )   # Mostly just here for convention's sake. Goes unused
-        self.charges, self.charges_sum = self.observation_space.sample()
-        self.curr_coef = np.array([anomaly_quadratic(self.charges), anomaly_cubic(self.charges), yukawa(self.charges_sum)])
-        self.prev_coef = np.zeros((3,))
+        self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
 
         self.rwd_func = rwd_func
         self.rewards_sum = 0.0
@@ -87,6 +85,6 @@ class Charge_Env(gym.Env):
     def reset(self, seed=0):
         super().reset(seed=seed)
 
-        self.charges, self.charges_sum = self.observation_space.sample()
+        self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
 
         return self._get_obs(), self._get_info()
