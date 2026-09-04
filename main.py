@@ -3,7 +3,7 @@ from src.neural_net import *
 from src.rwd_func import *
 import torch
 
-num_iterations = 50
+num_iterations = 512
 num_transitions = 200
 minibatch_size = 20
 num_epochs = 50
