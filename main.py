@@ -3,7 +3,7 @@ from src.neural_net import *
 from src.rwd_func import *
 import torch
 
-num_iterations = 512
+num_iterations = 5
 num_transitions = 200
 minibatch_size = 20
 num_epochs = 50
@@ -22,7 +22,7 @@ agent = PPO(num_epochs, num_transitions, minibatch_size, lr, lr_gamma, gamma, lm
 env = Charge_Env(max_charge, max_steps, tot_improvement_rwd)
 found_charges = []
 
-log_file = open("./found_charges/found_charges_tot_3.txt", "w")
+log_file = open("./found_charges/found_charges_tot_2.txt", "w")
 
 for i in range(num_iterations):
 
@@ -49,13 +49,15 @@ for i in range(num_iterations):
         if (chosen_particle.item() < 2):
             # To avoid picking 3rd charge for non doublet and neutrino
             generation_logits.masked_fill_(torch.tensor([False, False, True]), 1e-9)
-        # MASK ACTIONS THAT EXCEED BOUNDS!!!!!!!!!
-        # !!!!
-        # >:(
 
         generation_distr = torch.distributions.Categorical(logits=generation_logits)
         chosen_generation = generation_distr.sample()
         generation_log_prob = generation_distr.log_prob(chosen_generation)
+
+        if (state[chosen_particle, chosen_generation.item()] < -max_charge):
+            mod_logits.masked_fill_(torch.tensor([True, False]), 1e-9)
+        elif (state[chosen_particle, chosen_generation.item()] > max_charge):
+            mod_logits.masked_fill_(torch.tensor([False, True]), 1e-9)
 
         mod_distr = torch.distributions.Categorical(logits=mod_logits)
         chosen_mod = mod_distr.sample()

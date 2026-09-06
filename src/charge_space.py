@@ -59,9 +59,9 @@ class Charge_Space(gym.spaces.Box):
                 break
 
         curr_quad, curr_cube, curr_yukawa = anomaly_quadratic(charges), anomaly_cubic(charges), yukawa(charges_sum)
-        curr_coef = np.array([curr_quad, curr_cube, curr_yukawa])
+        curr_coef = np.array([curr_quad, curr_cube, curr_yukawa], dtype=np.int32)
 
-        return charges, charges_sum, curr_coef, np.zeros((3,))
+        return charges, charges_sum, curr_coef, np.zeros((3,), dtype=np.int32)
 
     def contains(self, sample):
         if not super().contains(sample):

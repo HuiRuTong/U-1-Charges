@@ -26,11 +26,13 @@
 int main(int argc, char *argv[]) {
     FILE *sol_1 = fopen(argv[1], "r");
     int num_sol_1 = atoi(argv[2]);
-    int *charges_1 = extract_charges(sol_1, num_sol_1);
+    int num_valid_1 = 0;
+    int *charges_1 = extract_charges(sol_1, num_sol_1, &num_valid_1);
     
     FILE *sol_2 = fopen(argv[3], "r");
     int num_sol_2 = atoi(argv[4]);
-    int *charges_2 = extract_charges(sol_2, num_sol_2);
+    int num_valid_2 = 0;
+    int *charges_2 = extract_charges(sol_2, num_sol_2, &num_valid_2);
 
     int dupe_or_unique = atoi(argv[5]);
     char *file_name;
@@ -42,8 +44,8 @@ int main(int argc, char *argv[]) {
     }
     FILE *logged_sol = fopen(file_name, "w");
 
-    for (int i = 0; i < num_sol_2; i++) {
-        int found_at = is_multiple(charges_1, charges_2 + 18*i, num_sol_1);
+    for (int i = 0; i < num_valid_2; i++) {
+        int found_at = is_multiple(charges_1, charges_2 + 18*i, num_valid_1);
 
         if (dupe_or_unique && found_at == -1) {
             for (int j = 0; j < 18; j++) {

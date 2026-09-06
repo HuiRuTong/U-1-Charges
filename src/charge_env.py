@@ -26,7 +26,7 @@ class Charge_Env(gym.Env):
         self.steps = 0
 
         # Here for reference. Unused
-        # self.particles = {"q":0, "l":1, "e":2, "u":3, "d":4, "v":5}
+        # self.particles = {"q":0, "v":1, "e":2, "u":3, "l":4, "d":5}
         # self.actions = {"choose_particle":0, "choose_generation":1, "choose_mod":2}
 
     def _upd_charges(self):
@@ -46,7 +46,7 @@ class Charge_Env(gym.Env):
         self.curr_coef[1] = anomaly_cubic(self.charges)
         self.curr_coef[2] = yukawa(self.charges_sum)
 
-    def _log_charges(self, log_file):
+    def _log_charges(self, found_charges, log_file):
         """
             Helper function to record each found charge inside a text file
 
@@ -54,7 +54,7 @@ class Charge_Env(gym.Env):
                 File where found charges are stored
         """
         for i in range(6):
-            log_file.write(f"  {self.charges[i, 0]: }  {self.charges[i, 1]: }  {self.charges[i, 2]: }")
+            log_file.write(f"  {found_charges[-1][i, 0]: }  {found_charges[-1][i, 1]: }  {found_charges[-1][i, 2]: }")
         log_file.write('\n')
 
     def _get_obs(self):
@@ -74,7 +74,7 @@ class Charge_Env(gym.Env):
         reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
         truncated = False
         if terminated and log_file is not None:
-            self._log_charges(log_file)
+            self._log_charges(found_charges, log_file)
 
         self.steps += 1
         if (self.steps > self.max_steps):
