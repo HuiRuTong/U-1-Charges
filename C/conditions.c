@@ -88,6 +88,7 @@ static PyObject *multiple_check(PyObject *self, PyObject *args) {
         found_sqr += found_arr[i]*found_arr[i];
         curr_sqr += curr_arr[i]*curr_arr[i];
     }
+    
     if (dot*dot == found_sqr * curr_sqr) {
         return Py_True;
     }

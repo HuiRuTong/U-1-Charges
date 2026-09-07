@@ -16,8 +16,8 @@
 int main(int argc, char *argv[]) {
     FILE *sol = fopen(argv[1], "r");
     int num_sol = atoi(argv[2]);
-    int num_valid = 0;
-    int *charges = extract_charges(sol, num_sol, &num_valid);
+    int num_bounded = 0;
+    int *charges = extract_charges(sol, num_sol, &num_bounded);
 
     int check_lin = atoi(argv[3]);
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     FILE *invalid = fopen(output_filename, "w");
     int num_invalid = 0;
 
-    for (int i = 0; i < num_valid; i++) {
+    for (int i = 0; i < num_bounded; i++) {
         int quad = 0;
         int cube = 0;
         int ykwa = 0;
@@ -68,6 +68,8 @@ int main(int argc, char *argv[]) {
             fprintf(invalid, "\n");
         }
     }
+
+    printf("There are %d invalid sol\n", num_invalid);
 
     fclose(sol);
     fclose(invalid);

@@ -7,7 +7,9 @@ curr_dir="$(cd "$(dirname "$0")" && pwd)"
 
 cd $curr_dir/../checks
 
-mkdir ../bin/
+if [! -d "../bin"]; then
+    mkdir ../bin/
+fi
 
 gcc check_duplicates.c UTILS.c -o ../bin/dupe
 gcc sort_sol.c UTILS.c -o ../bin/sort

@@ -51,7 +51,7 @@ class Charge_Space(gym.spaces.Box):
             charges = np.stack((q_charges, v_charges, e_charges, u_charges, l_charges, d_charges), axis=0)
             charges_sum = get_charges_properties(charges)
 
-            for i in range(1, 6): 
+            for i in range(2, 6): 
                 charges[i, 2] = charges_sum[i] - charges[i, 0] - charges[i, 1]
                 if (np.abs(charges[i, 2]) > np.abs(charges[i, 1])):
                     break

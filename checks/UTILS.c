@@ -96,7 +96,7 @@ void sort_abs(int *charges, int num_sol) {
         }
         if (abs(*(charges + i+1)) > abs(*(charges + i+2))) {
             _swap(charges+i+1, charges+i+2);
-            if (*(charges + i) > abs(*(charges + i+1))) {
+            if (abs(*(charges + i)) > abs(*(charges + i+1))) {
                 _swap(charges+i, charges+i+1);
             }
         }

@@ -43,7 +43,7 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coeff, prev_coeff):
         found_charges.append(sorted_charges)
         return 500, True
 
-    if curr_tot_coef < prev_tot_coef:
+    if abs(curr_tot_coef) < abs(prev_tot_coef):
         r += 30
 
     return r, False
@@ -53,8 +53,6 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
         Gain a miniscule reward if the any of the
         coef are less than before and lose some if
         any are more than
-
-        Horrible. Absolutely awful. Do not use this one
     """
     r = 0
 
@@ -62,15 +60,41 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     for found in found_charges:
         if multiple_check(found, sorted_charges):
             return -50, False
-        
+
     for i in range(3):
         if not curr_coef[i]:
             r += 100
         else:
-            if curr_coef[i] < prev_coef[i]:
+            if abs(curr_coef[i]) < abs(prev_coef[i]):
                 r += 10
     if r == 300:
         found_charges.append(sorted_charges)
         return 500, True
         
+    return r, False
+
+def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
+    """
+        Basically just split_improvement reward but w/o
+        a fixed reward
+    """
+    r = 0
+    is_valid = 1
+    
+    sorted_charges = get_sorted_charges(curr_charges)
+    for found in found_charges:
+        if multiple_check(found, sorted_charges):
+            return -5, False
+
+    for i in range(3):
+        if curr_coef[i] == 0:
+            r += 5
+        else:
+            is_valid = 0
+            r += (-curr_coef[i] + prev_coef[i]) / 10**i
+
+    if is_valid:
+        found_charges.append(sorted_charges)
+        return r, True
+
     return r, False

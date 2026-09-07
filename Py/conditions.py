@@ -21,13 +21,14 @@ def yukawa(charges_sum:npt.NDArray):
 
 def multiple_check(found_charges:npt.NDArray, curr_charges:npt.NDArray):
     # Assumes charges are already sorted in order of increasing magnitude
-    for i in range(6):
-        if (np.any(np.logical_xor(found_charges[i,:], curr_charges[i,:]), axis=None)):
-            return False
-        factors = np.array([found_charges[i,j] // curr_charges[i,j]
-                            if np.logical_and(found_charges[i,:], curr_charges[i,:])[j] else 0
-                            for j in range(3)])
-        if np.unique(factors).size > 1:
-            return False
+    dot = 0
+    a_sqr = 0
+    b_sqr = 0
+    for i in range(18):
+        dot += found_charges[i] * curr_charges[i]
+        a_sqr += found_charges[i] * found_charges[i]
+        b_sqr += curr_charges[i] * curr_charges[i]
 
-    return True
+    if (dot*dot == a_sqr*b_sqr):
+        return True
+    return False

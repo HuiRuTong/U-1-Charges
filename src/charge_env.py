@@ -68,10 +68,16 @@ class Charge_Env(gym.Env):
         chosen_generation = action[1].item()
         chosen_mod = action[2].item()
 
-        self.charges[chosen_particle, chosen_generation] += chosen_mod + (-1 if not chosen_mod else 1)
+        self.charges[chosen_particle, chosen_generation] += (-1 if not chosen_mod else 1)
         self._upd_charges()
 
-        reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
+        # To prevent all 0s from being marked as
+        # a duplicate and screwing over everything else
+        if np.all(self.charges == np.zeros((6,3))):
+            reward = 0
+            terminated = False
+        else:
+            reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
         truncated = False
         if terminated and log_file is not None:
             self._log_charges(found_charges, log_file)
@@ -86,5 +92,6 @@ class Charge_Env(gym.Env):
         super().reset(seed=seed)
 
         self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
+        self.steps = 0
 
         return self._get_obs(), self._get_info()
