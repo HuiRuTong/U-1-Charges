@@ -10,7 +10,7 @@ def generic_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     sorted_charges = get_sorted_charges(curr_charges)
     for found in found_charges:
         if multiple_check(found, sorted_charges):
-            return 100, False
+            return -50, False
 
     for i in range(3):
         if not curr_coef[i]:
@@ -34,9 +34,12 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coeff, prev_coeff):
     sorted_charges = get_sorted_charges(curr_charges)
     for found in found_charges:
         if multiple_check(found, sorted_charges):
-            return 100, False
+            return -50, False
 
-    if not curr_tot_coef:
+    if not curr_coeff[0] and not curr_coeff[1] and not curr_coeff[2]:
+        # Im fucking stupid. The reason this was signitifcantly better was
+        # because it wasn't actually finding answers where all coefs
+        # were 0
         found_charges.append(sorted_charges)
         return 500, True
 
@@ -58,7 +61,7 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     sorted_charges = get_sorted_charges(curr_charges)
     for found in found_charges:
         if multiple_check(found, sorted_charges):
-            return 100, False
+            return -50, False
         
     for i in range(3):
         if not curr_coef[i]:
