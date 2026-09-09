@@ -100,19 +100,24 @@ for i in range(num_iterations):
 
     agent.calc_gae_tar()
 
+    policy_loss = 0
+    val_loss = 0
+    tot_loss = 0
     for j in range(num_epochs):
         print(f"\t Epoch {j+1} of {num_epochs}", end='')
 
-        policy_loss, val_loss, tot_loss = agent.upd(torch.randperm(num_transitions))
+        policy_loss_, val_loss_, tot_loss_ = agent.upd(torch.randperm(num_transitions))
+        policy_loss += policy_loss_
+        val_loss += val_loss_
+        tot_loss += tot_loss_
         print(f"\t policy loss: {policy_loss}, val loss: {val_loss}, tot loss: {tot_loss}")
 
         if num_epochs // (j+1) == lr_upd_freq:
             agent.scheduler.step()
 
-    policy_losses.append(policy_loss.item())
-    val_losses.append(val_loss.item())
-    tot_losses.append(tot_loss.item())          # Plotting every single loss would be really messy
-                                                # so only the final one from each itiration is saved
+    policy_losses.append((policy_loss / num_epochs).item())
+    val_losses.append((val_loss / num_epochs).item())
+    tot_losses.append((tot_loss / num_epochs).item())
 
     print(f"End of itetration\nNumber of solutions found so far: {len(found_charges)}")
 
