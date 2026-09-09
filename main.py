@@ -6,16 +6,18 @@ import torch
 
 num_iterations = 256
 num_transitions = 200
-minibatch_size = 20
 num_epochs = 20
+minibatch_size = 20
 
 lr = 1e-5
 lr_gamma = 0.2
+
+pol_clip_epsilon = 0.5
+val_clip_epsilon = 0.02
+
 lr_upd_freq = 2
 gamma = 0.85
 lmbda = 0.95
-pol_clip_epsilon = 0.5
-val_clip_epsilon = 0.02
 entropy_coef = 0.02
 
 max_charge = 5
