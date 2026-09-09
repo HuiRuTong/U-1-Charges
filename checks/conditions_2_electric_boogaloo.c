@@ -73,6 +73,5 @@ int main(int argc, char *argv[]) {
 
     fclose(sol);
     fclose(invalid);
-
     free(charges);
 }

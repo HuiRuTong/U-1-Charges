@@ -1,28 +1,35 @@
 import numpy as np
 from src.neural_net import *
 from src.rwd_func import *
+import matplotlib.pyplot as plt
 import torch
 
-num_iterations = 5
+num_iterations = 256
 num_transitions = 200
 minibatch_size = 20
-num_epochs = 50
+num_epochs = 20
 
-lr = 1e-4
+lr = 1e-5
 lr_gamma = 0.2
-gamma = 0.99
+lr_upd_freq = 2
+gamma = 0.85
 lmbda = 0.95
-clip_epsilon = 0.5
+pol_clip_epsilon = 0.5
+val_clip_epsilon = 0.02
 entropy_coef = 0.02
 
 max_charge = 5
 max_steps = 25
 
-agent = PPO(num_epochs, num_transitions, minibatch_size, lr, lr_gamma, gamma, lmbda, clip_epsilon, entropy_coef)
-env = Charge_Env(max_charge, max_steps, tot_improvement_rwd)
+agent = PPO(num_epochs, num_transitions, minibatch_size, lr, lr_gamma, gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef)
+env = Charge_Env(max_charge, max_steps, abs_err_rwd)
+
+policy_losses = []
+val_losses = []
+tot_losses = []
 found_charges = []
 
-log_file = open("./found_charges/found_charges_tot_2.txt", "w")
+log_file = open("./found_charges/abs_1.txt", "w")
 
 for i in range(num_iterations):
 
@@ -46,18 +53,18 @@ for i in range(num_iterations):
         chosen_particle = particle_distr.sample()
         particle_log_prob = particle_distr.log_prob(chosen_particle)
 
-        if (chosen_particle.item() < 2):
+        if (chosen_particle.item() > 2):
             # To avoid picking 3rd charge for non doublet and neutrino
-            generation_logits.masked_fill_(torch.tensor([False, False, True]), 1e-9)
+            generation_logits.masked_fill_(torch.tensor([False, False, True]), -torch.inf)
 
         generation_distr = torch.distributions.Categorical(logits=generation_logits)
         chosen_generation = generation_distr.sample()
         generation_log_prob = generation_distr.log_prob(chosen_generation)
 
-        if (state[chosen_particle, chosen_generation.item()] < -max_charge):
-            mod_logits.masked_fill_(torch.tensor([True, False]), 1e-9)
-        elif (state[chosen_particle, chosen_generation.item()] > max_charge):
-            mod_logits.masked_fill_(torch.tensor([False, True]), 1e-9)
+        if (state[chosen_particle, chosen_generation.item()] <= -max_charge):
+            mod_logits.masked_fill_(torch.tensor([True, False]), -torch.inf)
+        elif (state[chosen_particle, chosen_generation.item()] >= max_charge):
+            mod_logits.masked_fill_(torch.tensor([False, True]), -torch.inf)
 
         mod_distr = torch.distributions.Categorical(logits=mod_logits)
         chosen_mod = mod_distr.sample()
@@ -92,7 +99,28 @@ for i in range(num_iterations):
     agent.calc_gae_tar()
 
     for j in range(num_epochs):
-        print(f"\t Epoch {j+1} of {num_epochs}")
-        agent.upd(torch.randperm(num_transitions))
+        print(f"\t Epoch {j+1} of {num_epochs}", end='')
+
+        policy_loss, val_loss, tot_loss = agent.upd(torch.randperm(num_transitions))
+        print(f"\t policy loss: {policy_loss}, val loss: {val_loss}, tot loss: {tot_loss}")
+
+        if num_epochs // (j+1) == lr_upd_freq:
+            agent.scheduler.step()
+
+    policy_losses.append(policy_loss.item())
+    val_losses.append(val_loss.item())
+    tot_losses.append(tot_loss.item())          # Plotting every single loss would be really messy
+                                                # so only the final one from each itiration is saved
+
+    print(f"End of itetration\nNumber of solutions found so far: {len(found_charges)}")
 
 log_file.close()
+
+fig, ax = plt.subplots(1, 1)
+itierations = np.arange(1, num_iterations+1)
+ax.plot(itierations, policy_losses, label="policy loss", color="r")
+ax.plot(itierations, val_losses, label="val loss", color="b")
+ax.plot(itierations, tot_losses, label="tot loss", color="m")
+
+ax.legend(loc="upper right")
+plt.show()

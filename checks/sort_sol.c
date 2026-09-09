@@ -25,5 +25,6 @@ int main(int argc, char *argv[]) {
     }
 
     fclose(complete_sol);
+    fclose(sorted_sol);
     free(complete_charges);
 }

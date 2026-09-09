@@ -55,7 +55,7 @@ class ActorCritic(torch.nn.Module):
 
 class PPO():
     def __init__(self, num_epochs=64, num_transitions=2048, minibatch_size=64, lr=0.5,
-                 lr_gamma=0.1, gamma=0.98, lmbda=0.02, clip_epsilon=0.2, entropy_coef=0.5):
+                 lr_gamma=0.1, gamma=0.98, lmbda=0.02, pol_clip_epsilon=0.2, val_clip_epsilon=0.2, entropy_coef=0.5):
         self.num_epochs = num_epochs
         self.num_transitions = num_transitions
         self.minibatch_size = minibatch_size
@@ -63,12 +63,13 @@ class PPO():
         self.lr_gamma = lr_gamma
         self.gamma = gamma
         self.lmbda = lmbda
-        self.clip_epsilon = clip_epsilon
+        self.pol_clip_epsilon = pol_clip_epsilon
+        self.val_clip_epsilon = val_clip_epsilon
         self.entropy_coef = entropy_coef
 
         self.actor_critic = ActorCritic()
         self.optimizer = torch.optim.Adam(self.actor_critic.parameters(), self.lr)
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 20, self.gamma)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 20, self.lr_gamma)
 
         self.states = []
         self.actions = []
@@ -93,6 +94,7 @@ class PPO():
             self.vals_tar[i] = torch.add(self.advantages[i], self.vals[j])
 
             j -= 1
+        self.advantages = (self.advantages - torch.mean(self.advantages)) / torch.std(self.advantages)
 
     def get_ratio(self, particle_distr, generation_distr, mod_distr, indices):
         particle_log_prob = particle_distr.log_prob(torch.flatten(self.actions[indices, 0]))
@@ -108,15 +110,26 @@ class PPO():
 
         j = 0   # index for ratio
         for i in indices:
-            if (ratio[j] < 1 - self.clip_epsilon) and (self.advantages[i] < 0):
-                obj = obj + (1 - self.clip_epsilon) * self.advantages[i]
-            elif (ratio[j] > 1 + self.clip_epsilon) and (self.advantages[i] > 0):
-                obj = obj + (1 + self.clip_epsilon) * self.advantages[i]
+            if (ratio[j] < 1 - self.pol_clip_epsilon) and (self.advantages[i] < 0):
+                obj = obj + (1 - self.pol_clip_epsilon) * self.advantages[i]
+            elif (ratio[j] > 1 + self.pol_clip_epsilon) and (self.advantages[i] > 0):
+                obj = obj + (1 + self.pol_clip_epsilon) * self.advantages[i]
             else:
                 obj = obj + ratio[j] * self.advantages[i]
             j += 1
 
         return obj / self.minibatch_size
+
+    def get_clip_val(self, new_vals, indices):
+        # This, along w/ the clipped loss is from OpenAI's PPO2
+        j = 0
+        for i in indices:
+            if new_vals[j] < self.vals[i] - self.val_clip_epsilon:
+                return self.vals[i] - self.val_clip_epsilon
+            elif new_vals[j] > self.vals[i] + self.val_clip_epsilon:
+                return self.vals[i] + self.val_clip_epsilon
+            else:
+                return new_vals[j]
 
     def upd(self, indices):
         for j in range(self.num_transitions // self.minibatch_size):
@@ -135,10 +148,15 @@ class PPO():
             entropy = torch.mean(entropies)
     
             policy_loss = -obj - self.entropy_coef*entropy
-            val_loss = torch.nn.functional.mse_loss(new_vals, self.vals_tar[indices[start:end]])
+
+            val_pred = self.get_clip_val(new_vals, indices)
+            val_loss = 0.5 * torch.mean(torch.maximum(torch.square(new_vals-self.vals_tar[indices[start:end]]),
+                                                      torch.square(val_pred-self.vals_tar[indices[start:end]])))
+
             tot_loss = policy_loss + val_loss
     
             self.optimizer.zero_grad()
             tot_loss.backward()
             self.optimizer.step()
-            self.scheduler.step()
+
+            return policy_loss, val_loss, tot_loss

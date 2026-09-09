@@ -8,9 +8,9 @@ def generic_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     """
     r = 0
     sorted_charges = get_sorted_charges(curr_charges)
-    for found in found_charges:
+    """for found in found_charges:
         if multiple_check(found, sorted_charges):
-            return -50, False
+            return -50, False"""
 
     for i in range(3):
         if not curr_coef[i]:
@@ -27,14 +27,11 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coeff, prev_coeff):
         of coef is less than before and lose
         some if more than
     """
-    curr_tot_coef = np.sum(curr_coeff)
-    prev_tot_coef = np.sum(prev_coeff)
+    curr_tot_coef = np.sum(np.abs(curr_coeff))
+    prev_tot_coef = np.sum(np.abs(prev_coeff))
     r = 0
 
     sorted_charges = get_sorted_charges(curr_charges)
-    for found in found_charges:
-        if multiple_check(found, sorted_charges):
-            return -50, False
 
     if not curr_coeff[0] and not curr_coeff[1] and not curr_coeff[2]:
         # Im fucking stupid. The reason this was signitifcantly better was
@@ -43,7 +40,7 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coeff, prev_coeff):
         found_charges.append(sorted_charges)
         return 500, True
 
-    if abs(curr_tot_coef) < abs(prev_tot_coef):
+    if curr_tot_coef < prev_tot_coef:
         r += 30
 
     return r, False
@@ -57,9 +54,6 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
 
     sorted_charges = get_sorted_charges(curr_charges)
-    for found in found_charges:
-        if multiple_check(found, sorted_charges):
-            return -50, False
 
     for i in range(3):
         if not curr_coef[i]:
@@ -82,9 +76,6 @@ def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     is_valid = 1
     
     sorted_charges = get_sorted_charges(curr_charges)
-    for found in found_charges:
-        if multiple_check(found, sorted_charges):
-            return -5, False
 
     for i in range(3):
         if curr_coef[i] == 0:
