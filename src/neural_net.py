@@ -84,7 +84,8 @@ class PPO():
     def calc_gae_tar(self):     # haha gay
         j = len(self.vals) - 3  # index for values since its size depends on the number of terminal and truncated states
 
-        self.advantages[-1] = self.rewards[-1] + self.gamma*self.vals[-1] - self.vals[-2] 
+        self.advantages[-1] = self.rewards[-1] + self.gamma*self.vals[-1] - self.vals[-2]
+        self.vals_tar[-1] = torch.add(self.advantages[-1], self.vals[-2])
         for i in range(self.num_transitions-2, -1, -1):
             if self.ended[i]:
                 j -= 1
@@ -121,15 +122,21 @@ class PPO():
         return obj / self.minibatch_size
 
     def get_clip_val(self, new_vals, indices):
-        # This, along w/ the clipped loss is from OpenAI's PPO2
+        # This, along w/ the clipped loss are from OpenAI's PPO2
+        clip_vals = torch.zeros((self.minibatch_size,))
+
         j = 0
         for i in indices:
-            if new_vals[j] < self.vals[i] - self.val_clip_epsilon:
-                return self.vals[i] - self.val_clip_epsilon
-            elif new_vals[j] > self.vals[i] + self.val_clip_epsilon:
-                return self.vals[i] + self.val_clip_epsilon
+            if new_vals[j] < self.vals[i] - self.critic_clip_epsilon:
+                clip_vals[j] = self.vals[i] - self.critic_clip_epsilon
+            elif new_vals[j] > self.vals[i] + self.critic_clip_epsilon:
+                clip_vals[j] = self.vals[i] + self.critic_clip_epsilon
             else:
-                return new_vals[j]
+                clip_vals[j] = new_vals[j]
+
+            j += 1
+
+        return clip_vals
 
     def upd(self, indices):
         for j in range(self.num_transitions // self.minibatch_size):
@@ -144,14 +151,14 @@ class PPO():
             ratio = self.get_ratio(particle_distr, generation_distr, mod_distr, indices[start:end])
             obj = self.get_clip_obj(ratio, indices[start:end])
 
-            entropies = torch.stack((particle_distr.entropy(), generation_distr.entropy(), mod_distr.entropy()))
-            entropy = torch.mean(entropies)
+            entropy = torch.mean(torch.stack(
+                                (particle_distr.entropy(), generation_distr.entropy(), mod_distr.entropy())))
     
             policy_loss = -obj - self.entropy_coef*entropy
 
-            val_pred = self.get_clip_val(new_vals, indices)
+            clip_vals = self.get_clip_val(new_vals, indices[start:end])
             val_loss = 0.5 * torch.mean(torch.maximum(torch.square(new_vals-self.vals_tar[indices[start:end]]),
-                                                      torch.square(val_pred-self.vals_tar[indices[start:end]])))
+                                                      torch.square(clip_vals-self.vals_tar[indices[start:end]])))
 
             tot_loss = policy_loss + val_loss
     
