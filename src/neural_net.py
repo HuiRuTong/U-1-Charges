@@ -127,10 +127,10 @@ class PPO():
 
         j = 0
         for i in indices:
-            if new_vals[j] < self.vals[i] - self.critic_clip_epsilon:
-                clip_vals[j] = self.vals[i] - self.critic_clip_epsilon
-            elif new_vals[j] > self.vals[i] + self.critic_clip_epsilon:
-                clip_vals[j] = self.vals[i] + self.critic_clip_epsilon
+            if new_vals[j] < self.vals[i] - self.val_clip_epsilon:
+                clip_vals[j] = self.vals[i] - self.val_clip_epsilon
+            elif new_vals[j] > self.vals[i] + self.val_clip_epsilon:
+                clip_vals[j] = self.vals[i] + self.val_clip_epsilon
             else:
                 clip_vals[j] = new_vals[j]
 
