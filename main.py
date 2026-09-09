@@ -6,25 +6,29 @@ import torch
 
 num_iterations = 256
 num_transitions = 200
-minibatch_size = 20
 num_epochs = 20
+minibatch_size = 20
 
-lr = 1e-5
-lr_gamma = 0.2
-lr_upd_freq = 2
-gamma = 0.85
+actor_lr = 1e-5
+critic_lr = 1e-6
+actor_lr_gamma = 0.2
+critic_lr_gamma = 0.1
+actor_clip_epsilon = 0.2
+critic_clip_epsilon = 0.2
+
+lr_upd_freq = 5
+gae_gamma = 0.85
 lmbda = 0.95
-pol_clip_epsilon = 0.5
-val_clip_epsilon = 0.02
 entropy_coef = 0.02
 
 max_charge = 5
 max_steps = 25
 
-agent = PPO(num_epochs, num_transitions, minibatch_size, lr, lr_gamma, gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef)
+agent = PPO(num_transitions, num_epochs, minibatch_size, actor_lr, critic_lr, actor_lr_gamma, critic_lr_gamma,
+            actor_clip_epsilon, critic_clip_epsilon, gae_gamma, lmbda, entropy_coef)
 env = Charge_Env(max_charge, max_steps, abs_err_rwd)
 
-policy_losses = []
+pol_losses = []
 val_losses = []
 tot_losses = []
 found_charges = []
@@ -47,7 +51,7 @@ for i in range(num_iterations):
         state = torch.tensor(env.charges, dtype=torch.float32)
         states.append(state)
 
-        particle_logits, generation_logits, mod_logits, val = agent.actor_critic(torch.unsqueeze(state, 0))
+        particle_logits, generation_logits, mod_logits = agent.actor(torch.unsqueeze(state, 0))
         
         particle_distr = torch.distributions.Categorical(logits=particle_logits)
         chosen_particle = particle_distr.sample()
@@ -72,10 +76,11 @@ for i in range(num_iterations):
 
         action = torch.stack((chosen_particle, chosen_generation, chosen_mod))
         log_prob = torch.sum(torch.stack((particle_log_prob, generation_log_prob, mod_log_prob)), 0)
-        val = torch.flatten(val)
 
         actions.append(action)
         log_probs.append(log_prob)
+
+        val = torch.flatten(agent.critic(torch.unsqueeze(state, 0)))
         vals.append(val)
 
         state, reward, terminated, truncated, info = env.step(action, found_charges, log_file)
@@ -83,9 +88,9 @@ for i in range(num_iterations):
 
         ended.append(int(terminated or truncated))
 
-        if terminated or truncated or j == num_transitions - 1:  # Last non terminal / truncated state also requires the next value
+        if terminated or truncated or j == num_transitions - 1:  # Last state also requires the next value
             state = torch.tensor(state, dtype=torch.float32)
-            vals.append(int(not terminated) * agent.actor_critic.forward(torch.unsqueeze(state, 0), value_only=True))   # Terminated states will hvae zero value
+            vals.append(int(not terminated) * agent.critic(torch.unsqueeze(state, 0)))   # Terminated states will hvae zero value
 
             env.reset()
 
@@ -98,29 +103,30 @@ for i in range(num_iterations):
 
     agent.calc_gae_tar()
 
+    pol_loss = 0
+    val_loss = 0
     for j in range(num_epochs):
         print(f"\t Epoch {j+1} of {num_epochs}", end='')
 
-        policy_loss, val_loss, tot_loss = agent.upd(torch.randperm(num_transitions))
-        print(f"\t policy loss: {policy_loss}, val loss: {val_loss}, tot loss: {tot_loss}")
+        pol_loss, val_loss += agent.upd(torch.randperm(num_transitions))
+        print(f"\t policy loss: {pol_loss: .2f}, val loss: {val_loss: .2f}")
 
-        if num_epochs // (j+1) == lr_upd_freq:
-            agent.scheduler.step()
+        """if num_epochs // (j+1) == lr_upd_freq:
+            agent.actor_scheduler.step()
+            agent.critic_scheduler.step()"""
 
-    policy_losses.append(policy_loss.item())
-    val_losses.append(val_loss.item())
-    tot_losses.append(tot_loss.item())          # Plotting every single loss would be really messy
-                                                # so only the final one from each itiration is saved
+    pol_losses.append(torch.mean(pol_loss).item())
+    val_losses.append(torch.mean(val_loss).item())
+    # Plotting every single loss would be really messy
+    # so only the final one from each itiration is saved
+    # Yea it should probably be mean, but I'll do that later
 
     print(f"End of itetration\nNumber of solutions found so far: {len(found_charges)}")
 
 log_file.close()
 
-fig, ax = plt.subplots(1, 1)
+fig, axs = plt.subplots(1, 2)
 itierations = np.arange(1, num_iterations+1)
-ax.plot(itierations, policy_losses, label="policy loss", color="r")
-ax.plot(itierations, val_losses, label="val loss", color="b")
-ax.plot(itierations, tot_losses, label="tot loss", color="m")
-
-ax.legend(loc="upper right")
+axs[0].plot(itierations, pol_losses, label="policy loss", color="r")
+axs[1].plot(itierations, val_losses, label="val loss", color="b")
 plt.show()
