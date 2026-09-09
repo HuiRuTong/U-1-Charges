@@ -166,9 +166,6 @@ class PPO():
             pol_loss = -obj - self.entropy_coef*entropy
 
             new_vals = self.critic.forward(self.states[indices[start:end]])
-            #print(new_vals.mean(), new_vals.std())
-
-
             clip_vals = self.get_clip_val(new_vals, indices[start:end])
             val_loss = 0.5 * torch.mean(torch.maximum(torch.square(new_vals-self.vals_tar[indices[start:end]]),
                                                       torch.square(clip_vals-self.vals_tar[indices[start:end]])))
@@ -180,9 +177,5 @@ class PPO():
             self.critic_optimizer.zero_grad()
             val_loss.backward()
             self.critic_optimizer.step()
-
-            """with torch.no_grad():
-                check = self.critic(self.states[indices[start:end]])
-                print("after: ", check.mean().item(), check.std().item())"""
 
             return pol_loss, val_loss

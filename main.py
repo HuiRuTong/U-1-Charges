@@ -108,18 +108,17 @@ for i in range(num_iterations):
     for j in range(num_epochs):
         print(f"\t Epoch {j+1} of {num_epochs}", end='')
 
-        pol_loss, val_loss += agent.upd(torch.randperm(num_transitions))
+        pol_loss_, val_loss_ = agent.upd(torch.randperm(num_transitions))
+        pol_loss += pol_loss_
+        val_loss += val_loss_
         print(f"\t policy loss: {pol_loss: .2f}, val loss: {val_loss: .2f}")
 
         """if num_epochs // (j+1) == lr_upd_freq:
             agent.actor_scheduler.step()
             agent.critic_scheduler.step()"""
 
-    pol_losses.append(torch.mean(pol_loss).item())
-    val_losses.append(torch.mean(val_loss).item())
-    # Plotting every single loss would be really messy
-    # so only the final one from each itiration is saved
-    # Yea it should probably be mean, but I'll do that later
+    pol_losses.append((pol_loss / num_epochs).item())
+    val_losses.append((val_loss / num_epochs).item())
 
     print(f"End of itetration\nNumber of solutions found so far: {len(found_charges)}")
 
