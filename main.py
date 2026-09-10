@@ -10,7 +10,7 @@ num_epochs = 20
 minibatch_size = 20
 
 actor_lr = 1e-5
-critic_lr = 1e-6
+critic_lr = 2.5e-6
 actor_lr_gamma = 0.2
 critic_lr_gamma = 0.1
 actor_clip_epsilon = 0.2
@@ -93,14 +93,18 @@ for i in range(num_iterations):
             vals.append(int(not terminated) * agent.critic(torch.unsqueeze(state, 0)))   # Terminated states will hvae zero value
 
             env.reset()
+    
+    print(f"Mean rewards: {env.rewards_sum / num_transitions}")
+    env.rewards_sum = 0.0
 
     agent.states = torch.stack(states).detach()
     agent.actions = torch.stack(actions).detach()
     agent.log_probs = torch.stack(log_probs).detach()
     agent.vals = torch.stack(vals).detach()
-    agent.rewards = torch.tensor(rwd_func)
+    agent.rewards = (torch.tensor(rwd_func))
     agent.ended = torch.tensor(ended)
 
+    agent.rewards = ((agent.rewards - torch.mean(agent.rewards)) / torch.std(agent.rewards)).detach()
     agent.calc_gae_tar()
 
     pol_loss = 0

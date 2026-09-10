@@ -78,6 +78,7 @@ class Charge_Env(gym.Env):
             terminated = False
         else:
             reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
+            self.rewards_sum += reward
         truncated = False
         if terminated and log_file is not None:
             self._log_charges(found_charges, log_file)
