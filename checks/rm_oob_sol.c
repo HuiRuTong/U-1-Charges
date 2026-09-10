@@ -18,18 +18,18 @@ int main(int argc, char *argv[]) {
     int *charges = extract_charges(sol, num_sol, &num_valid);
 
     char *output_filename = argv[3];
-    FILE *rmed = fopen(output_filename, "w");
+    FILE *valid = fopen(output_filename, "w");
     
     for (int i = 0; i < num_valid; i++) {
         for (int j = 0; j < 18; j++) {
-            fprintf(rmed, "  % d", *(charges + 18*i+j));
+            fprintf(valid, "  % d", *(charges + 18*i+j));
         }
-        fprintf(rmed, "\n");
+        fprintf(valid, "\n");
     }
     printf("There are %d valid solutions\n", num_valid);
 
     fclose(sol);
-    fclose(rmed);
+    fclose(valid);
 
     free(charges);
 }

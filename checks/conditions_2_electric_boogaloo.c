@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
             num_invalid++;
 
             for (int j = 0; j < 18; j++) {
-                fprintf(invalid, "  % d", *(charges + j));
+                fprintf(invalid, "  % d", *(charges + 18*i + j));
             }
             fprintf(invalid, "\n");
         }
