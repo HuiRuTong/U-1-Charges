@@ -6,14 +6,14 @@ import torch
 
 num_iterations = 256
 num_transitions = 200
-num_epochs = 20
+num_epochs = 5
 minibatch_size = 20
 
-lr = 1e-5
+lr = 1e-6
 lr_gamma = 0.2
 
-pol_clip_epsilon = 0.5
-val_clip_epsilon = 0.02
+pol_clip_epsilon = 0.2
+val_clip_epsilon = 0.2
 
 lr_upd_freq = 2
 gamma = 0.85
@@ -91,6 +91,9 @@ for i in range(num_iterations):
 
             env.reset()
 
+    print(f"Mean rewards: {env.rewards_sum / num_transitions}")
+    env.rewards_sum = 0.0
+
     agent.states = torch.stack(states).detach()
     agent.actions = torch.stack(actions).detach()
     agent.log_probs = torch.stack(log_probs).detach()
@@ -98,6 +101,7 @@ for i in range(num_iterations):
     agent.rewards = torch.tensor(rwd_func)
     agent.ended = torch.tensor(ended)
 
+    agent.rewards = ((agent.rewards - torch.mean(agent.rewards)) / torch.std(agent.rewards)).detach()
     agent.calc_gae_tar()
 
     policy_loss = 0
@@ -110,7 +114,7 @@ for i in range(num_iterations):
         policy_loss += policy_loss_
         val_loss += val_loss_
         tot_loss += tot_loss_
-        print(f"\t policy loss: {policy_loss}, val loss: {val_loss}, tot loss: {tot_loss}")
+        print(f"\t policy loss: {policy_loss: .2f}, val loss: {val_loss: .2f}, tot loss: {tot_loss: .2f}")
 
         if num_epochs // (j+1) == lr_upd_freq:
             agent.scheduler.step()
