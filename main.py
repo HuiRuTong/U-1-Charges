@@ -4,9 +4,9 @@ from src.rwd_func import *
 import matplotlib.pyplot as plt
 import torch
 
-num_iterations = 256
+num_iterations = 1024
 num_transitions = 200
-num_epochs = 20
+num_epochs = 5
 minibatch_size = 20
 
 actor_lr = 1e-5
@@ -19,9 +19,9 @@ critic_clip_epsilon = 0.2
 lr_upd_freq = 5
 gae_gamma = 0.85
 lmbda = 0.95
-entropy_coef = 0.02
+entropy_coef = 0.5
 
-max_charge = 5
+max_charge = 6
 max_steps = 25
 
 agent = PPO(num_transitions, num_epochs, minibatch_size, actor_lr, critic_lr, actor_lr_gamma, critic_lr_gamma,
@@ -33,7 +33,7 @@ val_losses = []
 tot_losses = []
 found_charges = []
 
-log_file = open("./found_charges/abs_1.txt", "w")
+log_file = open("./found_charges/abs_2.txt", "w")
 
 for i in range(num_iterations):
 
@@ -117,9 +117,9 @@ for i in range(num_iterations):
         val_loss += val_loss_
         print(f"\t policy loss: {pol_loss: .2f}, val loss: {val_loss: .2f}")
 
-        """if num_epochs // (j+1) == lr_upd_freq:
+        if num_epochs // (j+1) == lr_upd_freq:
             agent.actor_scheduler.step()
-            agent.critic_scheduler.step()"""
+            agent.critic_scheduler.step()
 
     pol_losses.append((pol_loss / num_epochs).item())
     val_losses.append((val_loss / num_epochs).item())
