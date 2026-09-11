@@ -21,22 +21,19 @@ def generic_rwd(found_charges, curr_charges, curr_coef, prev_coef):
 
     return r, False
 
-def tot_improvement_rwd(found_charges, curr_charges, curr_coeff, prev_coeff):
+def tot_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     """
         Gain a tiny reward if the current sum
         of coef is less than before and lose
         some if more than
     """
-    curr_tot_coef = np.sum(np.abs(curr_coeff))
-    prev_tot_coef = np.sum(np.abs(prev_coeff))
+    curr_tot_coef = np.sum(np.abs(curr_coef))
+    prev_tot_coef = np.sum(np.abs(prev_coef))
     r = 0
 
     sorted_charges = get_sorted_charges(curr_charges)
 
-    if not curr_coeff[0] and not curr_coeff[1] and not curr_coeff[2]:
-        # Im fucking stupid. The reason this was signitifcantly better was
-        # because it wasn't actually finding answers where all coefs
-        # were 0
+    if not curr_coef[0] and not curr_coef[1] and not curr_coef[2]:
         found_charges.append(sorted_charges)
         return 500, True
 
@@ -54,7 +51,6 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
 
     sorted_charges = get_sorted_charges(curr_charges)
-
     for i in range(3):
         if not curr_coef[i]:
             r += 100
@@ -66,6 +62,32 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
         return 500, True
         
     return r, False
+
+def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
+    r = 0
+    is_valid = 1
+
+    sorted_charges = get_sorted_charges(curr_charges)
+    curr_tot_coef = 0
+    prev_tot_coef = 0
+
+    for i in range(3):
+        if curr_coef[i] == 0:
+            r += 5
+        else:
+            is_valid = 0
+            curr_tot_coef += curr_coef[i] / 10**(i+1)
+            prev_tot_coef += prev_coef[i] / 10**(i+1)
+
+    if is_valid:
+        found_charges.append(sorted_charges)
+        return r, True
+    
+    if not curr_coef[0] and not curr_coef[1] and not curr_coef[2]:
+        found_charges.append(sorted_charges)
+        return r, True
+
+    return -curr_tot_coef + prev_tot_coef, False
 
 def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     """
