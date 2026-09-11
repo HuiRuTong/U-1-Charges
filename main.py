@@ -16,9 +16,9 @@ critic_lr_gamma = 0.1
 actor_clip_epsilon = 0.2
 critic_clip_epsilon = 0.2
 
-lr_upd_freq = 5
+lr_upd_freq = 5      # Should really be called period but I'm no physicist so it doesn't matter ;) 
 gae_gamma = 0.85
-lmbda = 0.95
+lmbda = 0.5
 entropy_coef = 0.5
 
 max_charge = 6
@@ -26,14 +26,14 @@ max_steps = 25
 
 agent = PPO(num_transitions, num_epochs, minibatch_size, actor_lr, critic_lr, actor_lr_gamma, critic_lr_gamma,
             actor_clip_epsilon, critic_clip_epsilon, gae_gamma, lmbda, entropy_coef)
-env = Charge_Env(max_charge, max_steps, abs_err_rwd)
+env = Charge_Env(max_charge, max_steps, abs_tot_err_rwd)
 
 pol_losses = []
 val_losses = []
 tot_losses = []
 found_charges = []
 
-log_file = open("./found_charges/abs_2.txt", "w")
+log_file = open("./found_charges/abs_3.txt", "w")
 
 for i in range(num_iterations):
 
