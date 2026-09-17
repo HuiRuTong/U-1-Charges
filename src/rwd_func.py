@@ -76,8 +76,8 @@ def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
             r += 5
         else:
             is_valid = 0
-            curr_tot_coef += curr_coef[i] / 10**(i+1)
-            prev_tot_coef += prev_coef[i] / 10**(i+1)
+            curr_tot_coef += np.abs(curr_coef[i] / 10**(i+1))
+            prev_tot_coef += np.abs(prev_coef[i] / 10**(i+1))
 
     if is_valid:
         found_charges.append(sorted_charges)
