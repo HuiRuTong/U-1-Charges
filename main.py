@@ -4,7 +4,7 @@ from src.rwd_func import *
 import matplotlib.pyplot as plt
 import torch
 
-num_iterations = 65536
+num_iterations = 512
 num_transitions = 200
 num_epochs = 5
 minibatch_size = 20
@@ -45,7 +45,9 @@ for i in range(num_iterations):
     rwd_func = []
     ended = []
     vals = []
+    vals_offset = []
 
+    end_count = 0
     for j in range(num_transitions):
         state = torch.tensor(env.charges, dtype=torch.float32)
         states.append(state)
@@ -54,6 +56,7 @@ for i in range(num_iterations):
         actions.append(action)
         log_probs.append(log_prob)
         vals.append(val)
+        vals_offset.append(end_count)
 
         state, reward, terminated, truncated, info = env.step(action, found_charges, log_file)
         rwd_func.append(reward)
@@ -64,6 +67,9 @@ for i in range(num_iterations):
             state = torch.tensor(state, dtype=torch.float32)
             vals.append(int(not terminated) * agent.get_action_val(torch.unsqueeze(state, 0), value_only=True))   # Terminated states will hvae zero value
 
+            end_count += 1
+            vals_offset.append(end_count)
+
             env.reset()
 
     print(f"Mean rewards: {env.rewards_sum / num_transitions: .2f}")
@@ -73,6 +79,7 @@ for i in range(num_iterations):
     agent.actions = torch.stack(actions).detach()
     agent.log_probs = torch.stack(log_probs).detach()
     agent.vals = torch.stack(vals).detach()
+    agent.vals_offset = torch.tensor(vals_offset)
     agent.rewards = torch.tensor(rwd_func)
     agent.ended = torch.tensor(ended)
 
@@ -84,7 +91,7 @@ for i in range(num_iterations):
     batch_tot_loss = 0
     for j in range(num_epochs):
         print(f"\t Epoch {j+1} of {num_epochs}", end='')
-
+    
         batch_pol_loss_, batch_val_loss_, batch_tot_loss_ = agent.upd(torch.randperm(num_transitions))
         print(f"\t policy loss: {batch_pol_loss_: .2f}, val loss: {batch_val_loss_: .2f}, tot loss: {batch_tot_loss_: .2f}")
 
@@ -95,9 +102,9 @@ for i in range(num_iterations):
         batch_val_loss += batch_val_loss_
         batch_tot_loss += batch_tot_loss_
         
-    policy_losses.append((batch_pol_loss / num_epochs))
-    val_losses.append((batch_val_loss / num_epochs))
-    tot_losses.append((batch_tot_loss / num_epochs))
+    policy_losses.append((batch_pol_loss / num_epochs).detach())
+    val_losses.append((batch_val_loss / num_epochs).detach())
+    tot_losses.append((batch_tot_loss / num_epochs).detach())
 
     print(f"End of itetration\nNumber of solutions found so far: {len(found_charges)}")
 
