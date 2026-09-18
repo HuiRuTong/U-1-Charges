@@ -2,7 +2,7 @@ from C.charges import *
 from C.conditions import *
 import numpy as np
 
-def generic_rwd(found_charges, curr_charges, curr_coef, prev_coef):
+def gen_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     """
         Gain some reward for each coef that's 0
     """
@@ -14,10 +14,10 @@ def generic_rwd(found_charges, curr_charges, curr_coef, prev_coef):
 
     for i in range(3):
         if not curr_coef[i]:
-            r += 100
-    if r == 300:
+            r += 5
+    if r == 15:
         found_charges.append(sorted_charges)
-        return 500, True
+        return 30, True
 
     return r, False
 
@@ -35,10 +35,10 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
 
     if not curr_coef[0] and not curr_coef[1] and not curr_coef[2]:
         found_charges.append(sorted_charges)
-        return 500, True
+        return 30, True
 
     if curr_tot_coef < prev_tot_coef:
-        r += 30
+        r += 9
 
     return r, False
 
@@ -53,13 +53,12 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     sorted_charges = get_sorted_charges(curr_charges)
     for i in range(3):
         if not curr_coef[i]:
-            r += 100
-        else:
-            if abs(curr_coef[i]) < abs(prev_coef[i]):
-                r += 10
-    if r == 300:
+            r += 5
+        elif abs(curr_coef[i]) < abs(prev_coef[i]):
+            r += 3
+    if r == 15:
         found_charges.append(sorted_charges)
-        return 500, True
+        return 30, True
         
     return r, False
 
