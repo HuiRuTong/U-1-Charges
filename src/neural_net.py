@@ -84,9 +84,10 @@ class PPO():
         self.states = []
         self.actions = []
         self.log_probs = []
+        self.vals = []
+        self.vals_offset = []
         self.rewards = []
         self.ended = []
-        self.vals = []
 
         self.advantages = torch.zeros(self.num_transitions)
         self.vals_tar = torch.zeros(self.num_transitions)
@@ -130,7 +131,7 @@ class PPO():
                 torch.sum(torch.stack((particle_log_prob, generation_log_prob, mod_log_prob)), 0))
 
     def calc_gae_tar(self):     # haha gay
-        j = len(self.vals) - 3  # index for values since its size depends on the number of terminal and truncated states
+        j = self.vals.size()[0] - 3  # index for values since its size depends on the number of terminal and truncated states
 
         self.advantages[-1] = self.rewards[-1] + self.gae_gamma*self.vals[-1] - self.vals[-2]
         self.vals_tar[-1] = torch.add(self.advantages[-1], self.vals[-2])
@@ -138,7 +139,7 @@ class PPO():
             if self.ended[i]:
                 j -= 1
 
-            delta = self.rewards[i] + self.gae_gamma*self.vals[j+1] - self.vals[i]
+            delta = self.rewards[i] + self.gae_gamma*self.vals[j+1] - self.vals[j]
             self.advantages[i] = self.gae_gamma*self.lmbda*self.advantages[i+1] + delta
             self.vals_tar[i] = torch.add(self.advantages[i], self.vals[j])
 
@@ -166,10 +167,19 @@ class PPO():
 
         j = 0
         for i in indices:
-            if new_vals[j] < self.vals[i] - self.critic_clip_epsilon:
-                clip_vals[j] = self.vals[i] - self.critic_clip_epsilon
-            elif new_vals[j] > self.vals[i] + self.critic_clip_epsilon:
-                clip_vals[j] = self.vals[i] + self.critic_clip_epsilon
+            # Add on the number of terminations / truncation
+            # encountered up to the ith element in vals
+            # this works because if S0, S1, S3, S4, S6 and V0, V1, V2, V3, V4, V5, V6
+            # For vals to match with states and therefore new_vals,
+            # its indices should be 0, 1, 3, 4, 6 as opposed to 0, 1, 2, 3, 4
+
+            if self.ended[i]:
+                j -= 1
+
+            if new_vals[j] < self.vals[i+self.vals_offset[i]] - self.critic_clip_epsilon:
+                clip_vals[j] = self.vals[i+self.vals_offset[i]] - self.critic_clip_epsilon
+            elif new_vals[j] > self.vals[i+self.vals_offset[i]] + self.critic_clip_epsilon:
+                clip_vals[j] = self.vals[i+self.vals_offset[i]] + self.critic_clip_epsilon
             else:
                 clip_vals[j] = new_vals[j]
 
