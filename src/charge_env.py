@@ -79,14 +79,14 @@ class Charge_Env(gym.Env):
             reward = 0
         elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape fix for third charges exceeding bounds
             reward = -5
-            truncated = True
+            terminated = True
             self.rewards_sum += reward
         else:
             reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
             self.rewards_sum += reward
 
-        if terminated and log_file is not None:
-            self._log_charges(found_charges, log_file)
+            if terminated and log_file is not None:
+                self._log_charges(found_charges, log_file)
 
         self.steps += 1
         if (self.steps > self.max_steps):

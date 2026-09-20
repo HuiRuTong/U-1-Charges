@@ -192,8 +192,7 @@ class PPO():
         # This, along w/ the clipped loss are from OpenAI's PPO2
         clip_vals = torch.zeros((self.minibatch_size,))
 
-        j = 0
-        for i in indices:
+        for j, i in enumerate(indices):
             # Add on the number of terminations / truncation
             # encountered up to the ith element in vals
             # this works because if S0, S1, S3, S4, S6 and V0, V1, V2, V3, V4, V5, V6
