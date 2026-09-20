@@ -26,8 +26,8 @@ class Policy(torch.nn.Module):
                 torch.nn.Linear(512, 2)
             )
 
-    def forward(self, state):
-        encoded = self.encode(state)
+    def forward(self, states):
+        encoded = self.encode(states)
         reshaped = torch.reshape(encoded, (len(encoded), -1,))
         # An alternative would be to take the mean of the logits
         # over all 6 particles but that feels really wrong
