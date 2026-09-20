@@ -42,7 +42,7 @@ for i in range(num_iterations):
     actions = []
     log_probs = []
     entropies = []
-    rwd_func = []
+    rewards = []
     ended = []
     vals = []
     vals_offset = []
@@ -59,11 +59,11 @@ for i in range(num_iterations):
         vals_offset.append(end_count)
 
         state, reward, terminated, truncated, info = env.step(action, found_charges, log_file)
-        rwd_func.append(reward)
+        rewards.append(reward)
 
         ended.append(int(terminated or truncated))
 
-        if terminated or truncated or j == num_transitions - 1:  # Last non terminal / truncated state also requires the next value
+        if ended[-1] or j == num_transitions - 1:  # Last non terminal / truncated state also requires the next value
             state = torch.tensor(state, dtype=torch.float32)
             vals.append(int(not terminated) * agent.get_action_val(torch.unsqueeze(state, 0), value_only=True))   # Terminated states will hvae zero value
 
@@ -80,7 +80,7 @@ for i in range(num_iterations):
     agent.log_probs = torch.stack(log_probs).detach()
     agent.vals = torch.stack(vals).detach()
     agent.vals_offset = torch.tensor(vals_offset)
-    agent.rewards = torch.tensor(rwd_func)
+    agent.rewards = torch.tensor(rewards)
     agent.ended = torch.tensor(ended)
 
     # agent.rewards = ((agent.rewards - torch.mean(agent.rewards)) / torch.std(agent.rewards)).detach()
@@ -106,7 +106,7 @@ for i in range(num_iterations):
     val_losses.append((batch_val_loss / num_epochs).detach())
     tot_losses.append((batch_tot_loss / num_epochs).detach())
 
-    print(f"End of itetration\nNumber of solutions found so far: {len(found_charges)}")
+    print(f"End of iteration\nNumber of solutions found so far: {len(found_charges)}")
 
 log_file.close()
 
