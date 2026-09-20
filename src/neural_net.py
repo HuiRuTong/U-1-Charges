@@ -32,8 +32,8 @@ class ActorCritic(torch.nn.Module):
             torch.nn.Linear(512, 1)
         )
 
-    def forward(self, state, action_only=False, value_only=False):
-        encoded = self.encode(state)
+    def forward(self, states, action_only=False, value_only=False):
+        encoded = self.encode(states)
         reshaped = torch.reshape(encoded, (len(encoded), -1,))
         # An alternative would be to take the mean of the logits
         # over all 6 particles but that feels really wrong
@@ -127,7 +127,7 @@ class PPO():
             ret += (torch.mean(torch.stack((particle_distr.entropy(), generation_distr.entropy(), mod_distr.entropy()))),)
         return ret  # I got sick of writing 5 billions ifs
 
-    def get_action_log_probs(self, states, actions, get_entropy=True):
+    def get_action_log_probs(self, states, actions, get_entropy=False):
         particle_logits, generation_logits, mod_logits = self.actor_critic.forward(states, action_only=True)
         particle_distr = torch.distributions.Categorical(logits=particle_logits)
         chosen_particle = actions[:, 0]
@@ -198,8 +198,6 @@ class PPO():
             # this works because if S0, S1, S3, S4, S6 and V0, V1, V2, V3, V4, V5, V6
             # For vals to match with states and therefore new_vals,
             # its indices should be 0, 1, 3, 4, 6 as opposed to 0, 1, 2, 3, 4
-
-            # looking back, i genuinely dont know why i kept the j; it makes no sense
 
             if new_vals[j] < self.vals[i+self.vals_offset[i]] - self.val_clip_epsilon:
                 clip_vals[j] = self.vals[i+self.vals_offset[i]] - self.val_clip_epsilon
