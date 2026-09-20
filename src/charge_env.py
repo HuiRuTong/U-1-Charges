@@ -64,29 +64,29 @@ class Charge_Env(gym.Env):
         return f"quadratic coef: {self.curr_coef[0]}\ncubic coef: {self.curr_coef[1]}\nyukawa coef: {self.curr_coef[2]}"
 
     def step(self, action, found_charges, log_file=None):
-        chosen_particle = action[0].item()
-        chosen_generation = action[1].item()
-        chosen_mod = action[2].item()
+        chosen_particle = action[0]
+        chosen_generation = action[1]
+        chosen_mod = action[2]
 
         self.charges[chosen_particle, chosen_generation] += (-1 if not chosen_mod else 1)
         self._upd_charges()
 
         # To prevent all 0s from being marked as
         # a duplicate and screwing over everything else
+        terminated = False
+        truncated = False
         if np.all(self.charges == np.zeros((6,3))):
             reward = 0
-            terminated = False
         elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape fix for third charges exceeding bounds
             reward = -5
-            terminated = False
+            terminated = True
             self.rewards_sum += reward
         else:
             reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
             self.rewards_sum += reward
-        truncated = False
 
-        if terminated and log_file is not None:
-            self._log_charges(found_charges, log_file)
+            if terminated and log_file is not None:
+                self._log_charges(found_charges, log_file)
 
         self.steps += 1
         if (self.steps > self.max_steps):
