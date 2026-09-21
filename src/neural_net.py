@@ -199,10 +199,10 @@ class PPO():
             # For vals to match with states and therefore new_vals,
             # its indices should be 0, 1, 3, 4, 6 as opposed to 0, 1, 2, 3, 4
 
-            if new_vals[j] < self.vals[i+self.vals_offset[i]] - self.val_clip_epsilon:
-                clip_vals[j] = self.vals[i+self.vals_offset[i]] - self.val_clip_epsilon
-            elif new_vals[j] > self.vals[i+self.vals_offset[i]] + self.val_clip_epsilon:
-                clip_vals[j] = self.vals[i+self.vals_offset[i]] + self.val_clip_epsilon
+            if new_vals[j] < self.vals[i+self.vals_offset[j]] - self.val_clip_epsilon:
+                clip_vals[j] = self.vals[i+self.vals_offset[j]] - self.val_clip_epsilon
+            elif new_vals[j] > self.vals[i+self.vals_offset[j]] + self.val_clip_epsilon:
+                clip_vals[j] = self.vals[i+self.vals_offset[j]] + self.val_clip_epsilon
             else:
                 clip_vals[j] = new_vals[j]
 
