@@ -73,7 +73,6 @@ for i in range(num_iterations):
             vals.append(int(not terminated) * agent.critic(torch.unsqueeze(state, 0)))   # Terminated states will hvae zero value
 
             end_count += 1
-            vals_offset.append(end_count)
 
             env.reset()
     
