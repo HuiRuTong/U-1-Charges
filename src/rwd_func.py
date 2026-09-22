@@ -33,17 +33,17 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
         some if more than
     """
     is_valid = 1
-
-    sorted_charges = get_sorted_charges(curr_charges)
     curr_tot_coef = 0
     prev_tot_coef = 0
+
+    sorted_charges = get_sorted_charges(curr_charges)
 
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
 
-        curr_tot_coef += np.abs(curr_coef[i] / 10**(i+1))
-        prev_tot_coef += np.abs(prev_coef[i] / 10**(i+1))
+        curr_tot_coef += np.abs(curr_coef[i])
+        prev_tot_coef += np.abs(prev_coef[i])
     
     if is_valid:
         found_charges.append(sorted_charges)
@@ -75,10 +75,10 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
 
 def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     is_valid = 1
-
-    sorted_charges = get_sorted_charges(curr_charges)
     curr_tot_coef = 0
     prev_tot_coef = 0
+
+    sorted_charges = get_sorted_charges(curr_charges)
 
     for i in range(3):
         if curr_coef[i]:
