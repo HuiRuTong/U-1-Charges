@@ -146,7 +146,7 @@ class PPO():
                                 states[torch.arange(states.size()[0]),
                                        chosen_particle, chosen_generation] >= self.max_charge),
                                 dim=-1)
-        mod_logits.masked_fill(mod_mask, -torch.inf)
+        mod_logits.masked_fill_(mod_mask, -torch.inf)
 
         mod_distr = torch.distributions.Categorical(logits=mod_logits)
         chosen_mod = actions[:, 2]
@@ -201,10 +201,10 @@ class PPO():
 
             # looking back, i genuinely dont know why i kept the j; it makes no sense
 
-            if new_vals[j] < self.vals[i+self.vals_offset[i]] - self.val_clip_epsilon:
-                clip_vals[j] = self.vals[i+self.vals_offset[i]] - self.val_clip_epsilon
-            elif new_vals[j] > self.vals[i+self.vals_offset[i]] + self.val_clip_epsilon:
-                clip_vals[j] = self.vals[i+self.vals_offset[i]] + self.val_clip_epsilon
+            if new_vals[j] < self.vals[i+self.vals_offset[j]] - self.val_clip_epsilon:
+                clip_vals[j] = self.vals[i+self.vals_offset[j]] - self.val_clip_epsilon
+            elif new_vals[j] > self.vals[i+self.vals_offset[j]] + self.val_clip_epsilon:
+                clip_vals[j] = self.vals[i+self.vals_offset[j]] + self.val_clip_epsilon
             else:
                 clip_vals[j] = new_vals[j]
 
