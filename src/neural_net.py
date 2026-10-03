@@ -54,7 +54,7 @@ class Value(torch.nn.Module):
         return torch.flatten(val)
 
 class PPO():
-    def __init__(self, num_transitions, num_epochs, minibatch_size, max_charge, actor_lr, critic_lr,
+    def __init__(self, num_epochs, num_transitions, minibatch_size, max_charge, actor_lr, critic_lr,
                  actor_lr_gamma, critic_lr_gamma, actor_clip_epsilon, critic_clip_epsilon, gae_gamma,
                  lmbda, entropy_coef):
         self.num_transitions = num_transitions
