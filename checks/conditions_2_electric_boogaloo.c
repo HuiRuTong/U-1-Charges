@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     int check_lin = atoi(argv[3]);
 
     char *output_filename = argv[4];
-    FILE *invalid = fopen(output_filename, "w");
+    FILE *invalids = fopen(output_filename, "w");
     int num_invalid = 0;
 
     for (int i = 0; i < num_bounded; i++) {
@@ -63,15 +63,15 @@ int main(int argc, char *argv[]) {
             num_invalid++;
 
             for (int j = 0; j < 18; j++) {
-                fprintf(invalid, "  % d", *(charges + 18*i + j));
+                fprintf(invalids, "  % d", *(charges + 18*i + j));
             }
-            fprintf(invalid, "\n");
+            fprintf(invalids, "\n");
         }
     }
 
-    printf("There are %d invalid sol\n", num_invalid);
+    printf("There are %d invalid sol in ", num_invalid);
 
     fclose(sol);
-    fclose(invalid);
+    fclose(invalids);
     free(charges);
 }
