@@ -2,22 +2,22 @@ from src.rwd_func import *
 from src.train import *
 import torch
 
-num_iterations = 20
+num_iterations = 512
 num_transitions = 200
 num_epochs = 5
 minibatch_size = 20
 
-actor_lr = 1e-5
-critic_lr = 2.5e-6
-actor_lr_gamma = 0.2
-critic_lr_gamma = 0.1
-actor_clip_epsilon = 0.2
-critic_clip_epsilon = 0.2
+actor_lr = 6.010731706199868e-05
+critic_lr = 2.0150622953681204e-07
+actor_lr_gamma = 0.11737292818213454
+critic_lr_gamma = 0.17496431209947724
+actor_clip_epsilon = 0.5737968512498365
+critic_clip_epsilon = 0.7325469386729884
 
 lr_upd_freq = 5      # Should really be called period but I'm no physicist so it doesn't matter ;) 
-gae_gamma = 0.85
-lmbda = 0.5
-entropy_coef = 0.5
+gae_gamma = 0.2953513202609301
+lmbda = 0.5738938980970808
+entropy_coef = 0.6581407850467246
 
 max_charge = 6
 max_steps = 25
