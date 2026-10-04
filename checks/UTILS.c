@@ -112,7 +112,7 @@ int srch(int *a, int *b, int num_sol_a) {
         flattened N x 18 array while
         b is an array with 18 elements
 
-        (actually, this is probably not needed)
+        This is probably not needed
     */
 
     for (int i = 0; i < num_sol_a; i++) {
@@ -123,13 +123,13 @@ int srch(int *a, int *b, int num_sol_a) {
     return -1;
 }
 
-int is_multiple(int *a, int *b, int num_sol_a) {
+int is_multiple(int *a, int *b, int num_sol_a, int start) {
     /*
         Checks to see if b is a multiple of a row
         in a
     */
     
-    for (int i = 0; i < num_sol_a; i++) {
+    for (int i = start; i < num_sol_a; i++) {
         int dot = 0;
         int a_sqr = 0;
         int b_sqr = 0;
