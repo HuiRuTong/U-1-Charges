@@ -6,9 +6,9 @@ import optuna
 rwd_funcs = {"abs_err_rwd":abs_err_rwd, "abs_tot_err_rwd":abs_tot_err_rwd}
 
 def objective(trial):
-    num_iterations = 50
+    num_iterations = 256
     num_epochs = 5
-    num_transitions = 100
+    num_transitions = 200
     minibatch_size = 20
 
     lr = trial.suggest_float("lr", 1e-8, 1e-4, log=True)
@@ -18,7 +18,7 @@ def objective(trial):
     val_clip_epsilon = trial.suggest_float("val_clip_epsilon", 0.1, 0.9, log=True)
 
     lr_upd_freq = 5     # Should really be called period but I'm no physicist so it doesn't matter ;) 
-    gamma = trial.suggest_float("gamma", 0.1, 0.9, log=True)
+    gae_gamma = trial.suggest_float("gamma", 0.1, 0.9, log=True)
     lmbda = trial.suggest_float("lmbda", 0.1, 0.9, log=True)
     entropy_coef = trial.suggest_float("entropy_coef", 0.1, 0.9, log=True)
 
@@ -29,8 +29,8 @@ def objective(trial):
     log_file = None
 
     agent = init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
-                   pol_clip_epsilon, val_clip_epsilon, gamma, lmbda, entropy_coef,
-                   max_charge)
+                       gae_gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef,
+                       max_charge)
     env = init_env(max_charge, max_steps, rwd)
 
     return train(num_iterations, num_transitions, num_epochs,
@@ -49,6 +49,6 @@ print("\tNumber of complete trials: ", len(complete_trials))
 
 print("Best trial:")
 print("\tValue: ", study.best_trial.value)
-print(" \tParams: ")
+print("\tParams: ")
 for key, value in study.best_trial.params.items():
     print(f"\t{key}: {value}")

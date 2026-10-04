@@ -10,17 +10,17 @@ import optuna
 
 # I plan to eventually remove the agent's dependence on max_charge
 def init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
-               pol_clip_epsilon, val_clip_epsilon, gamma, lmbda, entropy_coef,
+               gae_gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef,
                max_charge):
     return PPO(num_epochs, num_transitions, minibatch_size, max_charge, lr,
-               lr_gamma, gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef)
+               lr_gamma, gae_gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef)
 
 def init_env(max_charge, max_steps, rwd):
     return Charge_Env(max_charge, max_steps, rwd)
 
 def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
           agent, env, trial=None):
-    policy_losses = []
+    pol_losses = []
     val_losses = []
     tot_losses = []
     found_charges = []
@@ -91,7 +91,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
             batch_val_loss += batch_val_loss_
             batch_tot_loss += batch_tot_loss_
 
-        policy_losses.append((batch_pol_loss / num_epochs).detach())
+        pol_losses.append((batch_pol_loss / num_epochs).detach())
         val_losses.append((batch_val_loss / num_epochs).detach())
         tot_losses.append((batch_tot_loss / num_epochs).detach())
 
@@ -106,13 +106,13 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     if log_file is not None:
         log_file.close()
 
-    return policy_losses, val_losses, tot_losses, mean_rwd if trial is not None else None
+    return pol_losses, val_losses, tot_losses, mean_rwd if trial is not None else None
 
-def plot(num_iterations, policy_losses, val_losses, tot_losses):
+def plot(num_iterations, pol_losses, val_losses, tot_losses):
     fig, ax = plt.subplots(1, 1)
 
     itierations = np.arange(1, num_iterations+1)
-    ax.plot(itierations, policy_losses, label="policy loss", color="r")
+    ax.plot(itierations, pol_losses, label="policy loss", color="r")
     ax.plot(itierations, val_losses, label="val loss", color="b")
     ax.plot(itierations, tot_losses, label="tot loss", color="m")
 
