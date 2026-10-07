@@ -34,26 +34,23 @@ int main(int argc, char *argv[]) {
     FILE *dupes = fopen(argv[5], "w");
     FILE *uniques = fopen(argv[6], "w");
 
-    for (int i = 0; i < num_valid_2; i++) {
-        int found_at = is_multiple(charges_1, charges_2 + 18*i, num_valid_1, 0);
+    for (int i = 0; i < num_valid_1; i++) {
+        int found_at = is_multiple(charges_2, charges_1 + 18*i, num_valid_2, 0);
 
         if (found_at == -1) {
             for (int j = 0; j < 18; j++) {
-                fprintf(uniques, "  % d", *(charges_2 + 18*i+j));
+                fprintf(uniques, "  % d", *(charges_1 + 18*i+j));
             }
             fprintf(uniques, "\n");
             
-            // printf("Solution %d in file 2 is missing from file 1\n", i+1);
             continue;
         }
 
         if (found_at != -1) {
             for (int j = 0; j < 18; j++) {
-                fprintf(dupes, "  % d", *(charges_2 + 18*i+j));
+                fprintf(dupes, "  % d", *(charges_1 + 18*i+j));
             }
             fprintf(dupes, "\n");
-            
-            // printf("Solution %d in file 2 is a duplicate of solution %d in file 1\n", i+1, found_at+1);
         }
     }
 
