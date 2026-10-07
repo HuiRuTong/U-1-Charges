@@ -18,7 +18,7 @@ else
     echo "Cleaning up solutions..."
 fi
 
-cd $curr_dir/../bin
+cd "$curr_dir/../bin"
 
 if [ ! -d "$curr_dir/../output" ]; then
     mkdir $curr_dir/../output

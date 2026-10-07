@@ -5,7 +5,7 @@
 set -e
 curr_dir="$(cd "$(dirname "$0")" && pwd)"
 
-cd $curr_dir/../checks
+cd "$curr_dir/../checks"
 
 if [ ! -d "../bin" ]; then
     mkdir ../bin/
