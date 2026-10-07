@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
     int num_valid_2 = 0;
     int *charges_2 = extract_charges(sol_2, num_sol_2, &num_valid_2);
 
-    FILE *dupes = fopen("./output/duplicates.txt", "w");
-    FILE *uniques = fopen("./output/uniques.txt", "w");
+    FILE *dupes = fopen(argv[5], "w");
+    FILE *uniques = fopen(argv[6], "w");
 
     for (int i = 0; i < num_valid_2; i++) {
         int found_at = is_multiple(charges_1, charges_2 + 18*i, num_valid_1, 0);

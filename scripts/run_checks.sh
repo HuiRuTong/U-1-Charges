@@ -42,5 +42,5 @@ echo "Check finished"
 echo
 
 echo "Now checking for duplicates"
-./check_duplicates "$curr_dir/.$file_1" $num_sol_1 "$curr_dir/.$file_2" $num_sol_2
+./check_duplicates "$curr_dir/.$file_1" $num_sol_1 "$curr_dir/.$file_2" $num_sol_2 "$curr_dir/../output/duplicates.txt" "$curr_dir/../output/uniques.txt"
 echo "Check finished"
