@@ -1,6 +1,10 @@
+import sys
 from src.rwd_func import *
 from src.train import *
 import torch
+
+seed = int(sys.argv[1])
+torch.manual_seed(seed)
 
 num_iterations = 512
 num_transitions = 200
@@ -28,7 +32,7 @@ log_file = open("./found_charges/abs_2.txt", "w")
 agent = init_agent(num_epochs, num_transitions, minibatch_size, max_charge, actor_lr, critic_lr,
                    actor_lr_gamma, critic_lr_gamma, actor_clip_epsilon, critic_clip_epsilon,
                    gae_gamma, lmbda, entropy_coef)
-env = init_env(max_charge, max_steps, rwd)
+env = init_env(max_charge, max_steps, rwd, seed)
 
 pol_losses, val_losses = train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq, agent, env)[:2]
 
