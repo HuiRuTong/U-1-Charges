@@ -9,4 +9,4 @@ cd "$curr_dir/../C"
 
 python3 build.py build_ext --inplace --compiler=mingw32
 
-echo "finished building C extensions"
+echo "Finished building C extensions"
