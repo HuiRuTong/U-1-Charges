@@ -4,9 +4,11 @@ from C.conditions import *
 from C.charges import *
 
 class Charge_Space(gym.spaces.Box):
-    def __init__(self, max_charge=5, charges=np.zeros((6,3))):
+    def __init__(self, max_charge=5, seed=None):
         super().__init__(low=-max_charge, high=max_charge, shape = (6, 3), dtype = np.int32)
         self.max_charge = max_charge
+        self._np_random_seed = seed
+        self._np_random = np.random.default_rng(seed)
 
     def _get_ordered_charges(self, n):
         """
