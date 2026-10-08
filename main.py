@@ -27,7 +27,7 @@ max_charge = 6
 max_steps = 25
 
 rwd = abs_err_rwd
-log_file = open("./found_charges/abs_2.txt", "w")
+log_file = open(sys.argv[2], "w")
 
 agent = init_agent(num_epochs, num_transitions, minibatch_size, max_charge, actor_lr, critic_lr,
                    actor_lr_gamma, critic_lr_gamma, actor_clip_epsilon, critic_clip_epsilon,
