@@ -24,6 +24,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     val_losses = []
     tot_losses = []
     found_charges = []
+    num_solutions = []
 
     for i in range(num_iterations):
 
@@ -62,7 +63,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
                 env.reset()
 
         mean_rwd = env.rewards_sum / num_transitions
-        print(f"Mean rewards: {mean_rwd: .2f}")
+        print(f"Mean reward: {mean_rwd: .2f}")
         env.rewards_sum = 0.0
 
         agent.states = torch.stack(states).detach()
@@ -100,21 +101,29 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
 
             if trial.should_prune():
                 raise optuna.exceptions.TrialPruned()
-            
-        print(f"End of iteration\nNumber of solutions found so far: {len(found_charges)}")
+
+        num_solutions.append(len(found_charges))
+        print(f"End of iteration\nNumber of solutions found so far: {num_solutions[-1]}")
 
     if log_file is not None:
         log_file.close()
 
-    return pol_losses, val_losses, tot_losses, mean_rwd if trial is not None else None
+    return num_solutions, pol_losses, val_losses, tot_losses, mean_rwd if trial is not None else None
 
-def plot(num_iterations, pol_losses, val_losses, tot_losses):
-    fig, ax = plt.subplots(1, 1)
+def plot(figname, num_iterations, num_solutions, pol_losses, val_losses, tot_losses):
+    fig, ax = plt.subplots(1, 2)
 
     itierations = np.arange(1, num_iterations+1)
-    ax.plot(itierations, pol_losses, label="policy loss", color="r")
-    ax.plot(itierations, val_losses, label="val loss", color="b")
-    ax.plot(itierations, tot_losses, label="tot loss", color="m")
+    ax[0].plot(itierations, pol_losses, label="policy loss", color="r")
+    ax[0].plot(itierations, val_losses, label="val loss", color="b")
+    ax[0].plot(itierations, tot_losses, label="tot loss", color="m")
 
-    ax.legend(loc="upper right")
-    plt.show()
+    ax[1].plot(itierations, num_solutions, label="num sol")
+
+    ax[0].legend(loc="upper right")
+    ax[1].legend(loc="lower right")
+
+    if figname is not None:
+        fig.savefig(figname)
+    else:
+        plt.show()

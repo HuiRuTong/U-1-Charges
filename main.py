@@ -1,39 +1,31 @@
-import sys
+import argparse
 from src.rwd_func import *
 from src.train import *
 import torch
 
-seed = int(sys.argv[1])
+rwd_funcs = {"abs_err_rwd":abs_err_rwd, "abs_tot_err_rwd":abs_tot_err_rwd}
+
+parser = argparse.ArgumentParser()
+argnames = {"num_iterations":int, "num_epochs":int, "num_transitions":int, "minibatch_size":int,
+            "lr":float, "lr_gamma":float, "pol_clip_epsilon":float, "val_clip_epsilon":float, "lr_upd_freq":int,
+            "gae_gamma":float, "lmbda":float, "entropy_coef":float, "max_charge":int, "max_steps":int,
+            "rwd":str, "--seed":int, "--log":str, "--fig":str}
+for arg, dtype in argnames.items():
+    parser.add_argument(arg, type=dtype)
+args = parser.parse_args()
+
+seed = int(args.seed)
 torch.manual_seed(seed)
 
-num_iterations = 512
-num_epochs = 5
-num_transitions = 200
-minibatch_size = 20
+rwd = rwd_funcs[args.rwd]
+log_file = open(args.log, "w")
 
-lr = 7.379879632415984e-05
-lr_gamma = 0.32460358795404193
+agent = init_agent(args.num_epochs, args.num_transitions, args.minibatch_size, args.lr, args.lr_gamma,
+                   args.gae_gamma, args.lmbda, args.pol_clip_epsilon, args.val_clip_epsilon, args.entropy_coef,
+                   args.max_charge)
+env = init_env(args.max_charge, args.max_steps, rwd, seed)
 
-pol_clip_epsilon = 0.26692209754627677
-val_clip_epsilon = 0.18639443443962206
+num_solutions, pol_losses, val_losses, tot_losses = train(args.num_iterations, args.num_transitions, args.num_epochs,
+                                                          log_file, args.lr_upd_freq, agent, env)[:4]
 
-lr_upd_freq = 5     # Should really be called period but I'm no physicist so it doesn't matter ;) 
-gae_gamma = 0.516170793570394
-lmbda = 0.23688335474478636
-entropy_coef =  0.2659486523965797
-
-max_charge = 5
-max_steps = 25
-
-rwd = abs_tot_err_rwd
-log_file = open(sys.argv[2], "w")
-
-agent = init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
-                   gae_gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef,
-                   max_charge)
-env = init_env(max_charge, max_steps, rwd, seed)
-
-pol_losses, val_losses, tot_losses = train(num_iterations, num_transitions, num_epochs,
-                                              log_file, lr_upd_freq, agent, env)[:3]
-
-plot(num_iterations, pol_losses, val_losses, tot_losses)
+plot(args.fig, args.num_iterations, num_solutions, pol_losses, val_losses, tot_losses)

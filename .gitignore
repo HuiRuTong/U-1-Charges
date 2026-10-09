@@ -5,6 +5,9 @@ build/
 SMnuRcharges/
 bin/
 output/
+found_charges/
+figures/
+# remove the last 3 folders later
 
 *.so
 *.pyd
