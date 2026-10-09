@@ -46,4 +46,4 @@ for i in {0..1}; do
 done
 end=$(date +%s)
 
-echo $(((end - start) / 3600))
+echo "Time elapsed: $(((end - start)))"
