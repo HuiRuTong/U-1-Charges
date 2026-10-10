@@ -15,13 +15,16 @@ for arg, dtype in argnames.items():
     parser.add_argument(arg, type=dtype)
 args = parser.parse_args()
 
+torch.manual_seed(args.seed)
+
+rwd = rwd_funcs[args.rwd]
 log_file = open(args.log, "w")
 
 agent = init_agent(args.num_epochs, args.num_transitions, args.minibatch_size, args.max_charge,
                    args.actor_lr, args.critic_lr, args.actor_lr_gamma, args.critic_lr_gamma,
                    args.actor_clip_epsilon, args.critic_clip_epsilon, args.gae_gamma, args.lmbda,
                    args.entropy_coef)
-env = init_env(args.max_charge, args.max_steps, args.rwd)
+env = init_env(args.max_charge, args.max_steps, rwd, args.seed)
 
 num_solutions, pol_losses, val_losses = train(args.num_iterations, args.num_transitions, args.num_epochs,
                                               log_file, args.lr_upd_freq, agent, env)[:3]
