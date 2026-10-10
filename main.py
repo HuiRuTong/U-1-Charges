@@ -14,8 +14,7 @@ for arg, dtype in argnames.items():
     parser.add_argument(arg, type=dtype)
 args = parser.parse_args()
 
-seed = int(args.seed)
-torch.manual_seed(seed)
+torch.manual_seed(args.seed)
 
 rwd = rwd_funcs[args.rwd]
 log_file = open(args.log, "w")
