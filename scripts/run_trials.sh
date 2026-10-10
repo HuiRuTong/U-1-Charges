@@ -12,16 +12,16 @@ num_epochs=5
 num_transitions=200
 minibatch_size=20
 
-lr=(7.379879632415984e-05 1e-4)
-lr_gamma=(0.32460358795404193 0.32460358795404193)
+lr=(6.331696468307533e-05 1e-4)
+lr_gamma=(0.14049047497642966 0.32460358795404193)
 
-pol_clip_epsilon=(0.26692209754627677 0.2)
-val_clip_epsilon=(0.18639443443962206 0.2)
+pol_clip_epsilon=(0.30085053416429375 0.2)
+val_clip_epsilon=(0.19085597785347683 0.2)
 
 lr_upd_freq=5     # Should really be called period but I'm no physicist so it doesn't matter ;) 
-gae_gamma=(0.516170793570394 0.99)
-lmbda=(0.23688335474478636 0.9)
-entropy_coef=(0.2659486523965797 0.02)
+gae_gamma=(0.930925532933216 0.99)
+lmbda=(0.2705703360686772 0.9)
+entropy_coef=(0.3222255586355983 0.02)
 
 max_charge=5
 max_steps=25
