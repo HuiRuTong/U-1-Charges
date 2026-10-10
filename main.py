@@ -22,7 +22,7 @@ log_file = open(args.log, "w")
 agent = init_agent(args.num_epochs, args.num_transitions, args.minibatch_size, args.lr, args.lr_gamma,
                    args.gae_gamma, args.lmbda, args.pol_clip_epsilon, args.val_clip_epsilon, args.entropy_coef,
                    args.max_charge)
-env = init_env(args.max_charge, args.max_steps, rwd, seed)
+env = init_env(args.max_charge, args.max_steps, rwd, args.seed)
 
 num_solutions, pol_losses, val_losses, tot_losses = train(args.num_iterations, args.num_transitions, args.num_epochs,
                                                           log_file, args.lr_upd_freq, agent, env)[:4]
