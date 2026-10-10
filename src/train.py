@@ -23,6 +23,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     pol_losses = []
     val_losses = []
     found_charges = []
+    num_solutions = []
 
     for i in range(num_iterations):
 
@@ -63,7 +64,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
                 env.reset()
 
         mean_rwd = env.rewards_sum / num_transitions
-        print(f"Mean rewards: {mean_rwd: .2f}")
+        print(f"Mean reward: {mean_rwd: .2f}")
         env.rewards_sum = 0.0
 
         agent.states = torch.stack(states).detach()
@@ -95,20 +96,28 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
         pol_losses.append((batch_pol_loss / num_epochs).detach())
         val_losses.append((batch_val_loss / num_epochs).detach())
 
-        print(f"End of iteration\nNumber of solutions found so far: {len(found_charges)}")
+        num_solutions.append(len(found_charges))
+        print(f"End of iteration\nNumber of solutions found so far: {num_solutions[-1]}")
 
     if log_file is not None:
         log_file.close()
 
-    return pol_losses, val_losses, mean_rwd if trial is not None else None
+    return num_solutions, pol_losses, val_losses, mean_rwd if trial is not None else None
 
-def plot(num_iterations, pol_losses, val_losses):
-    fig, axs = plt.subplots(1, 2)
+def plot(figname, num_iterations, num_solutions, pol_losses, val_losses):
+    fig, axs = plt.subplots(1, 3)
 
     itierations = np.arange(1, num_iterations+1)
     axs[0].plot(itierations, pol_losses, color="r")
     axs[0].set_title("policy loss")
+
     axs[1].plot(itierations, val_losses, color="b")
     axs[1].set_title("value loss")
+    
+    axs[2].plot(itierations, num_solutions)
+    axs[2].set_title("number of solutions")
 
-    plt.show()
+    if figname is not None:
+        fig.savefig(figname)
+    else:
+        plt.show()
