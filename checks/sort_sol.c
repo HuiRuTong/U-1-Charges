@@ -4,7 +4,7 @@
 
 /*
     This sorts the complete set of solutions
-    according to increasing magitude
+    according to increasing magnitude
 */
 
 int main(int argc, char *argv[]) {

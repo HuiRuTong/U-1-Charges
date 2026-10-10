@@ -11,7 +11,7 @@ class Charge_Env(gym.Env):
         self._np_random_seed = seed
         self._np_random = np.random.default_rng(seed)
 
-        self.observation_space = Charge_Space(max_charge=5)
+        self.observation_space = Charge_Space(max_charge=5, seed=seed)
         self.action_space = gym.spaces.Dict(
                                 {
                                  "choose_particle":gym.spaces.Discrete(6, dtype=np.int32),
