@@ -22,12 +22,8 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
           agent, env, trial=None):
     pol_losses = []
     val_losses = []
-    found_charges = []
     num_solutions = []
-<<<<<<< HEAD
-=======
     found_charges = set()
->>>>>>> fa36f87 (The duplicate checking works now)
 
     for i in range(num_iterations):
 
