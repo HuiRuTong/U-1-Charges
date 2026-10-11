@@ -15,7 +15,8 @@ for arg, dtype in argnames.items():
     parser.add_argument(arg, type=dtype)
 args = parser.parse_args()
 
-torch.manual_seed(args.seed)
+if args.seed is not None:
+    torch.manual_seed(args.seed)
 
 rwd = rwd_funcs[args.rwd]
 log_file = open(args.log, "w")
