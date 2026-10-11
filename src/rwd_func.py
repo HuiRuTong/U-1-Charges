@@ -9,11 +9,6 @@ def gen_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
     is_valid = 1
 
-    sorted_charges = get_sorted_charges(curr_charges)
-    """for found in found_charges:
-        if multiple_check(found, sorted_charges):
-            return -50, False"""
-
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -60,7 +55,6 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
     is_valid = 1
 
-    sorted_charges = get_sorted_charges(curr_charges)
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -77,8 +71,6 @@ def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     is_valid = 1
     curr_tot_coef = 0
     prev_tot_coef = 0
-
-    sorted_charges = get_sorted_charges(curr_charges)
 
     for i in range(3):
         if curr_coef[i]:

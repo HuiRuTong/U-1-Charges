@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
         int found_at = is_multiple(charges, charges + 18*i, num_bounded, i+1);
 
         if (found_at != -1) {
+            printf("%d\n", i);
             is_dupe[found_at] = true;
             num_dupes++;
         }

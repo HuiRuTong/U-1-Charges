@@ -46,7 +46,7 @@ class Charge_Env(gym.Env):
         self.curr_coef[1] = anomaly_cubic(self.charges)
         self.curr_coef[2] = yukawa(self.charges_sum)
 
-    def _log_charges(self, found_charges, log_file):
+    def _log_charges(self, sort_red_charges, log_file):
         """
             Helper function to record each found charge inside a text file
 
@@ -54,8 +54,28 @@ class Charge_Env(gym.Env):
                 File where found charges are stored
         """
         for i in range(6):
-            log_file.write(f"  {found_charges[-1][i, 0]: }  {found_charges[-1][i, 1]: }  {found_charges[-1][i, 2]: }")
+            log_file.write(f"  {sort_red_charges[i, 0]: }  {sort_red_charges[i, 1]: }  {sort_red_charges[i, 2]: }")
         log_file.write('\n')
+
+    def _get_sort_red_charges(self):
+        sorted_charges = get_sorted_charges(np.abs(self.charges)).flatten("C")
+
+        for c in sorted_charges:    # Ensures that all solutions start with a + charge which makes checking easier
+            if not c:
+                continue
+            else:
+                if c < 0:
+                    sorted_charges = -sorted_charges
+                break
+                    
+        gcd = np.gcd.reduce(sorted_charges)
+        sorted_charges = np.reshape(sorted_charges, (6, 3))
+        if gcd != 1:
+            return np.floor_divide(sorted_charges, gcd)
+        return sorted_charges
+    
+    def _get_charges_tuple(self, sort_red_charges):
+        return (tuple(c for c in sort_red_charges.flatten("C")))
 
     def _get_obs(self):
         return self.charges
@@ -77,17 +97,23 @@ class Charge_Env(gym.Env):
         truncated = False
         if np.all(self.charges == np.zeros((6,3))):
             reward = 0
-        elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape fix for third charges exceeding bounds
+        elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape "fix" for third charges exceeding bounds
             reward = -5
             terminated = True
-            self.rewards_sum += reward
         else:
-            reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
-            self.rewards_sum += reward
+            sort_red_charges = self._get_sort_red_charges()
 
-            if terminated and log_file is not None:
-                self._log_charges(found_charges, log_file)
+            if self._get_charges_tuple(sort_red_charges) in found_charges:
+                reward = -5
+                terminated = True
+            else:
+                reward, terminated = self.rwd_func(found_charges, self._get_charges_tuple(sort_red_charges),
+                                               self.curr_coef, self.prev_coef)
 
+                if terminated and log_file is not None:
+                    self._log_charges(sort_red_charges, log_file)
+
+        self.rewards_sum += reward
         self.steps += 1
         if (self.steps > self.max_steps):
             truncated = True
