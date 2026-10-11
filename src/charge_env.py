@@ -46,7 +46,7 @@ class Charge_Env(gym.Env):
         self.curr_coef[1] = anomaly_cubic(self.charges)
         self.curr_coef[2] = yukawa(self.charges_sum)
 
-    def _log_charges(self, logged_charges, log_file):
+    def _log_charges(self, sort_red_charges, log_file):
         """
             Helper function to record each found charge inside a text file
 
@@ -54,17 +54,34 @@ class Charge_Env(gym.Env):
                 File where found charges are stored
         """
         for i in range(6):
-            log_file.write(f"  {logged_charges[i, 0]: }  {logged_charges[i, 1]: }  {logged_charges[i, 2]: }")
+            log_file.write(f"  {sort_red_charges[i, 0]: }  {sort_red_charges[i, 1]: }  {sort_red_charges[i, 2]: }")
         log_file.write('\n')
+
+    def _get_sort_red_charges(self):
+        sorted_charges = get_sorted_charges(np.abs(self.charges)).flatten("C")
+
+        for c in sorted_charges:    # Ensures that all solutions start with a + charge which makes checking easier
+            if not c:
+                continue
+            else:
+                if c < 0:
+                    sorted_charges = -sorted_charges
+                break
+                    
+        gcd = np.gcd.reduce(sorted_charges)
+        sorted_charges = np.reshape(sorted_charges, (6, 3))
+        if gcd != 1:
+            return np.floor_divide(sorted_charges, gcd)
+        return sorted_charges
+    
+    def _get_charges_tuple(self, sort_red_charges):
+        return (tuple(c for c in sort_red_charges.flatten("C")))
 
     def _get_obs(self):
         return self.charges
 
     def _get_info(self):
         return f"quadratic coef: {self.curr_coef[0]}\ncubic coef: {self.curr_coef[1]}\nyukawa coef: {self.curr_coef[2]}"
-
-    def get_charges_tuple(self):
-        return (tuple(i) for i in self.charges.flatten("C"))
 
     def step(self, action, found_charges, log_file=None):
         chosen_particle = action[0]
@@ -74,7 +91,6 @@ class Charge_Env(gym.Env):
         self.charges[chosen_particle, chosen_generation] += (-1 if not chosen_mod else 1)
         self._upd_charges()
 
-        sorted_charges = get_sorted_charges(self.charges)
 
         # To prevent all 0s from being marked as
         # a duplicate and screwing over everything else
@@ -82,17 +98,23 @@ class Charge_Env(gym.Env):
         terminated = False
         if np.all(self.charges == np.zeros((6,3))):
             reward = 0
-        elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape fix for third charges exceeding bounds
+        elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape "fix" for third charges exceeding bounds
             reward = -5
             terminated = True
-            self.rewards_sum += reward
         else:
-            reward, terminated = self.rwd_func(found_charges, sorted_charges, self.curr_coef, self.prev_coef)
-            self.rewards_sum += reward
+            sort_red_charges = self._get_sort_red_charges()
 
-            if terminated and log_file is not None:
-                self._log_charges(sorted_charges, log_file)
+            if self._get_charges_tuple(sort_red_charges) in found_charges:
+                reward = -5
+                terminated = True
+            else:
+                reward, terminated = self.rwd_func(found_charges, self._get_charges_tuple(sort_red_charges),
+                                               self.curr_coef, self.prev_coef)
 
+                if terminated and log_file is not None:
+                    self._log_charges(sort_red_charges, log_file)
+
+        self.rewards_sum += reward
         self.steps += 1
         if (self.steps > self.max_steps):
             truncated = True

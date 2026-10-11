@@ -24,7 +24,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     val_losses = []
     tot_losses = []
     num_solutions = []
-    found_charges = {}
+    found_charges = set()
 
     for i in range(num_iterations):
 

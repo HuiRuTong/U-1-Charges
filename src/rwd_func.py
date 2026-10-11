@@ -9,9 +9,6 @@ def gen_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
     is_valid = 1
 
-    if (curr_charges in found_charges):
-        return -5, True
-
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -56,9 +53,6 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
     is_valid = 1
 
-    if (curr_charges in found_charges):
-        return -5, True
-
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -76,9 +70,6 @@ def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     curr_tot_coef = 0
     prev_tot_coef = 0
 
-    if (curr_charges in found_charges):
-        return -5, True
-    
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -99,9 +90,6 @@ def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     """
     r = 0
     is_valid = 1
-
-    if (curr_charges in found_charges):
-        return -5, True
     
     for i in range(3):
         if curr_coef[i]:
