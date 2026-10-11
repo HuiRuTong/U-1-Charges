@@ -46,7 +46,7 @@ class Charge_Env(gym.Env):
         self.curr_coef[1] = anomaly_cubic(self.charges)
         self.curr_coef[2] = yukawa(self.charges_sum)
 
-    def _log_charges(self, found_charges, log_file):
+    def _log_charges(self, logged_charges, log_file):
         """
             Helper function to record each found charge inside a text file
 
@@ -54,7 +54,7 @@ class Charge_Env(gym.Env):
                 File where found charges are stored
         """
         for i in range(6):
-            log_file.write(f"  {found_charges[-1][i, 0]: }  {found_charges[-1][i, 1]: }  {found_charges[-1][i, 2]: }")
+            log_file.write(f"  {logged_charges[i, 0]: }  {logged_charges[i, 1]: }  {logged_charges[i, 2]: }")
         log_file.write('\n')
 
     def _get_obs(self):
@@ -63,6 +63,9 @@ class Charge_Env(gym.Env):
     def _get_info(self):
         return f"quadratic coef: {self.curr_coef[0]}\ncubic coef: {self.curr_coef[1]}\nyukawa coef: {self.curr_coef[2]}"
 
+    def get_charges_tuple(self):
+        return (tuple(i) for i in self.charges.flatten("C"))
+
     def step(self, action, found_charges, log_file=None):
         chosen_particle = action[0]
         chosen_generation = action[1]
@@ -70,6 +73,8 @@ class Charge_Env(gym.Env):
 
         self.charges[chosen_particle, chosen_generation] += (-1 if not chosen_mod else 1)
         self._upd_charges()
+
+        sorted_charges = get_sorted_charges(self.charges)
 
         # To prevent all 0s from being marked as
         # a duplicate and screwing over everything else
@@ -82,11 +87,11 @@ class Charge_Env(gym.Env):
             terminated = True
             self.rewards_sum += reward
         else:
-            reward, terminated = self.rwd_func(found_charges, self.charges, self.curr_coef, self.prev_coef)
+            reward, terminated = self.rwd_func(found_charges, sorted_charges, self.curr_coef, self.prev_coef)
             self.rewards_sum += reward
 
             if terminated and log_file is not None:
-                self._log_charges(found_charges, log_file)
+                self._log_charges(sorted_charges, log_file)
 
         self.steps += 1
         if (self.steps > self.max_steps):

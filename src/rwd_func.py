@@ -9,10 +9,8 @@ def gen_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
     is_valid = 1
 
-    sorted_charges = get_sorted_charges(curr_charges)
-    """for found in found_charges:
-        if multiple_check(found, sorted_charges):
-            return -50, False"""
+    if (curr_charges in found_charges):
+        return -5, True
 
     for i in range(3):
         if curr_coef[i]:
@@ -21,7 +19,7 @@ def gen_rwd(found_charges, curr_charges, curr_coef, prev_coef):
             r += 5
 
     if is_valid:
-        found_charges.append(sorted_charges)
+        found_charges.add(curr_charges)
         return 15, True
 
     return r, False
@@ -36,8 +34,6 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     curr_tot_coef = 0
     prev_tot_coef = 0
 
-    sorted_charges = get_sorted_charges(curr_charges)
-
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -46,7 +42,7 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
         prev_tot_coef += np.abs(prev_coef[i])
     
     if is_valid:
-        found_charges.append(sorted_charges)
+        found_charges.add(curr_charges)
         return 15, True
 
     return 9 if curr_tot_coef < prev_tot_coef else -9, False
@@ -60,7 +56,9 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     r = 0
     is_valid = 1
 
-    sorted_charges = get_sorted_charges(curr_charges)
+    if (curr_charges in found_charges):
+        return -5, True
+
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -68,7 +66,7 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef):
                 r += 3
 
     if is_valid:
-        found_charges.append(sorted_charges)
+        found_charges.add(curr_charges)
         return 15, True
         
     return r, False
@@ -78,8 +76,9 @@ def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     curr_tot_coef = 0
     prev_tot_coef = 0
 
-    sorted_charges = get_sorted_charges(curr_charges)
-
+    if (curr_charges in found_charges):
+        return -5, True
+    
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
@@ -88,7 +87,7 @@ def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
         prev_tot_coef += np.abs(prev_coef[i] / 10**(i+1))
 
     if is_valid:
-        found_charges.append(sorted_charges)
+        found_charges.add(curr_charges)
         return 15, True
 
     return -curr_tot_coef + prev_tot_coef, False
@@ -100,16 +99,17 @@ def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
     """
     r = 0
     is_valid = 1
-    
-    sorted_charges = get_sorted_charges(curr_charges)
 
+    if (curr_charges in found_charges):
+        return -5, True
+    
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
             r += (-abs(curr_coef[i]) + abs(prev_coef[i])) / 10**(i+1)
 
     if is_valid:
-        found_charges.append(sorted_charges)
+        found_charges.add(curr_charges)
         return 15, True
 
     return r, False
