@@ -15,7 +15,7 @@ def init_agent(num_epochs, num_transitions, minibatch_size, max_charge, actor_lr
                actor_lr_gamma, critic_lr_gamma, actor_clip_epsilon, critic_clip_epsilon,
                gae_gamma, lmbda, entropy_coef)
 
-def init_env(max_charge, max_steps, rwd, seed):
+def init_env(max_charge, max_steps, rwd, seed=None):
     return Charge_Env(max_charge, max_steps, rwd, seed)
 
 def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
