@@ -15,7 +15,7 @@ def init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
     return PPO(num_epochs, num_transitions, minibatch_size, max_charge, lr,
                lr_gamma, gae_gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef)
 
-def init_env(max_charge, max_steps, rwd, seed):
+def init_env(max_charge, max_steps, rwd, seed=None):
     return Charge_Env(max_charge, max_steps, rwd, seed)
 
 def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
@@ -111,17 +111,17 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     return num_solutions, pol_losses, val_losses, tot_losses, mean_rwd if trial is not None else None
 
 def plot(figname, num_iterations, num_solutions, pol_losses, val_losses, tot_losses):
-    fig, ax = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2)
 
     itierations = np.arange(1, num_iterations+1)
-    ax[0].plot(itierations, pol_losses, label="policy loss", color="r")
-    ax[0].plot(itierations, val_losses, label="val loss", color="b")
-    ax[0].plot(itierations, tot_losses, label="tot loss", color="m")
+    axs[0].plot(itierations, pol_losses, label="policy loss", color="r")
+    axs[0].plot(itierations, val_losses, label="val loss", color="b")
+    axs[0].plot(itierations, tot_losses, label="tot loss", color="m")
+    axs[0].legend(loc="upper right")
+    axs[0].set_title("losses")
 
-    ax[1].plot(itierations, num_solutions, label="num sol")
-
-    ax[0].legend(loc="upper right")
-    ax[1].legend(loc="lower right")
+    axs[1].plot(itierations, num_solutions)
+    axs[1].set_title("num Sol")
 
     if figname is not None:
         fig.savefig(figname)
