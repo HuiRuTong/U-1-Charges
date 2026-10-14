@@ -22,8 +22,8 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
           agent, env, trial=None):
     pol_losses = []
     val_losses = []
-    found_charges = []
     num_solutions = []
+    found_charges = set()
 
     for i in range(num_iterations):
 
@@ -57,7 +57,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
 
             if ended[-1] or j == num_transitions - 1:  # Last state also requires the next value
                 state = torch.tensor(state, dtype=torch.float32)
-                vals.append(int(not terminated) * agent.critic(torch.unsqueeze(state, 0)))   # Terminated states will hvae zero value
+                vals.append(int(not terminated) * agent.critic(torch.unsqueeze(state, 0)))   # Terminated states will have zero value
 
                 end_count += 1
 
