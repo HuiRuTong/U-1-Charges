@@ -30,7 +30,7 @@ max_steps=25
 rwd=("abs_err_rwd" "abs_err_rwd")
 
 start=$(date +%s)
-for i in {0..1}; do
+for ((i = 0; i < ${#identifiers[@]}; i++)); do
     echo "Currently on ${identifiers[$i]}"
     echo
 
