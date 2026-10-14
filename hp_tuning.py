@@ -35,7 +35,7 @@ def objective(trial):
     env = init_env(max_charge, max_steps, rwd)
 
     return train(num_iterations, num_transitions, num_epochs,
-                 log_file, lr_upd_freq, agent, env, trial)[2]
+                 log_file, lr_upd_freq, agent, env, trial)[3]
 
 study = optuna.create_study(direction="maximize")
 study.optimize(objective, n_trials=100)
