@@ -58,7 +58,7 @@ class Charge_Env(gym.Env):
         log_file.write('\n')
 
     def _get_sort_red_charges(self):
-        sorted_charges = get_sorted_charges(np.abs(self.charges)).flatten("C")
+        sorted_charges = get_sorted_charges(self.charges).flatten("C")
 
         for c in sorted_charges:    # Ensures that all solutions start with a + charge which makes checking easier
             if not c:
@@ -105,7 +105,7 @@ class Charge_Env(gym.Env):
             sort_red_charges = self._get_sort_red_charges()
 
             if self._get_charges_tuple(sort_red_charges) in found_charges:
-                reward = -5
+                reward = 5
                 terminated = True
             else:
                 reward, terminated = self.rwd_func(found_charges, self._get_charges_tuple(sort_red_charges),

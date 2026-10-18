@@ -108,7 +108,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     if log_file is not None:
         log_file.close()
 
-    return num_solutions, pol_losses, val_losses, tot_losses, mean_rwd if trial is not None else None
+    return num_solutions, pol_losses, val_losses, tot_losses, num_solutions[-1] if trial is not None else None
 
 def plot(figname, num_iterations, num_solutions, pol_losses, val_losses, tot_losses):
     fig, axs = plt.subplots(1, 2)
