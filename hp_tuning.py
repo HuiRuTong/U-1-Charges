@@ -12,13 +12,13 @@ def objective(trial):
     minibatch_size = 20
 
     lr = trial.suggest_float("lr", 1e-8, 1e-4, log=True)
-    lr_gamma = trial.suggest_float("lr_gamma", 0.1, 0.5, log=True)
+    lr_gamma = trial.suggest_float("lr_gamma", 0.9, 0.99, log=True)
 
     pol_clip_epsilon = trial.suggest_float("pol_clip_epsilon", 0.1, 0.5, log=True)
     val_clip_epsilon = trial.suggest_float("val_clip_epsilon", 0.1, 0.5, log=True)
 
     lr_upd_freq = 5     # Should really be called period but I'm no physicist so it doesn't matter ;) 
-    gae_gamma = trial.suggest_float("gamma", 0.1, 0.99, log=True)
+    gae_gamma = trial.suggest_float("gamma", 0.9, 0.99, log=True)
     lmbda = trial.suggest_float("lmbda", 0.1, 0.99, log=True)
     entropy_coef = trial.suggest_float("entropy_coef", 0.1, 0.99, log=True)
 
