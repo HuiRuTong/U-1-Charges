@@ -13,15 +13,15 @@ def objective(trial):
 
     actor_lr = trial.suggest_float("actor_lr", 1e-8, 1e-4, log=True)
     critic_lr = trial.suggest_float("critic_lr", 1e-8, 1e-4, log=True)
-    actor_lr_gamma = trial.suggest_float("actor_lr_gamma", 0.1, 0.5, log=True)
-    critic_lr_gamma = trial.suggest_float("critic_lr_gamma", 0.1, 0.5, log=True)
+    actor_lr_gamma = trial.suggest_float("actor_lr_gamma", 0.9, 0.99, log=True)
+    critic_lr_gamma = trial.suggest_float("critic_lr_gamma", 0.9, 0.99, log=True)
     actor_clip_epsilon = trial.suggest_float("actor_clip_epsilon", 0.1, 0.9, log=True)
     critic_clip_epsilon = trial.suggest_float("critic_clip_epsilon", 0.1, 0.9, log=True)
 
     lr_upd_freq = 5      # Should really be called period but I'm no physicist so it doesn't matter ;) 
-    gae_gamma = trial.suggest_float("gae_gamma", 0.1, 0.9, log=True)
-    lmbda = trial.suggest_float("lmbda", 0.1, 0.9, log=True)
-    entropy_coef = trial.suggest_float("entropy_coef", 0.1, 0.9, log=True)
+    gae_gamma = trial.suggest_float("gae_gamma", 0.9, 0.99, log=True)
+    lmbda = trial.suggest_float("lmbda", 0.1, 0.99, log=True)
+    entropy_coef = trial.suggest_float("entropy_coef", 0.1, 0.99, log=True)
 
     max_charge = 5
     max_steps = 25
