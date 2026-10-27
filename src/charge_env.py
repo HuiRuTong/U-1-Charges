@@ -1,6 +1,7 @@
 import numpy as np
 import gymnasium as gym
 from src.charge_space import Charge_Space
+from src.rwd_func import *
 from C.conditions import *
 from C.charges import *
 
@@ -24,6 +25,7 @@ class Charge_Env(gym.Env):
         self.rwd_func = rwd_func
         self.rewards_sum = 0.0
         self.steps = 0
+        self.min_err = 2147483647.0      # Some big number to start :)
 
         # Here for reference. Unused
         # self.particles = {"q":0, "v":1, "e":2, "u":3, "l":4, "d":5}
@@ -91,25 +93,42 @@ class Charge_Env(gym.Env):
         self.charges[chosen_particle, chosen_generation] += (-1 if not chosen_mod else 1)
         self._upd_charges()
 
-
-        # To prevent all 0s from being marked as
-        # a duplicate and screwing over everything else
+        # To prevent all 0s from being marked as a duplicate
+        # and screwing over everything else
         truncated = False
         terminated = False
         if np.all(self.charges == np.zeros((6,3))):
             reward = 0
         elif np.any(np.abs(self.charges) > self.max_charge):    # Duct tape "fix" for third charges exceeding bounds
-            reward = -5
+            
+            
+            """
+                Penalty for going oob; remember to change this!
+            """
+
+
+            reward = 0
             terminated = True
         else:
             sort_red_charges = self._get_sort_red_charges()
 
             if self._get_charges_tuple(sort_red_charges) in found_charges:
-                reward = 5
+
+
+                """
+                    Repeat for duplicate solutions; also remember to change this!
+                """
+
+                
+                reward = 15
                 terminated = True
             else:
-                reward, terminated = self.rwd_func(found_charges, self._get_charges_tuple(sort_red_charges),
-                                               self.curr_coef, self.prev_coef)
+                if self.rwd_func == min_err_rwd:        # Don't you just fucking wish Python had pointers?
+                    reward, terminated, self.min_err = self.rwd_func(found_charges, self._get_charges_tuple(sort_red_charges),
+                                                                     self.curr_coef, self.prev_coef, self.min_err, self.gae_gamma)
+                else:  
+                    reward, terminated = self.rwd_func(found_charges, self._get_charges_tuple(sort_red_charges),
+                                                       self.curr_coef, self.prev_coef, self.min_err, self.gae_gamma)
 
                 if terminated and log_file is not None:
                     self._log_charges(sort_red_charges, log_file)
@@ -126,5 +145,6 @@ class Charge_Env(gym.Env):
 
         self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
         self.steps = 0
+        self.min_err = 2147483647.0
 
         return self._get_obs(), self._get_info()

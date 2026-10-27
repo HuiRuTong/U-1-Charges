@@ -27,7 +27,6 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     found_charges = set()
 
     for i in range(num_iterations):
-
         print(f"Currently on iteration {i+1} of {num_iterations}")
 
         states = []
