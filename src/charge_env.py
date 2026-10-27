@@ -6,7 +6,7 @@ from C.conditions import *
 from C.charges import *
 
 class Charge_Env(gym.Env):
-    def __init__(self, max_charge=5, max_steps=15, rwd_func=None, seed=None):
+    def __init__(self, max_charge=5, max_steps=15, rwd_func=None, gae_gamma=1, seed=None):
         self.max_charge = max_charge
         self.max_steps = max_steps
         self._np_random_seed = seed
@@ -23,6 +23,7 @@ class Charge_Env(gym.Env):
         self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
 
         self.rwd_func = rwd_func
+        self.gae_gamma = gae_gamma
         self.rewards_sum = 0.0
         self.steps = 0
         self.min_err = 2147483647.0      # Some big number to start :)

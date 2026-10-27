@@ -31,7 +31,7 @@ def objective(trial):
     agent = init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
                        gae_gamma, lmbda, pol_clip_epsilon, val_clip_epsilon, entropy_coef,
                        max_charge)
-    env = init_env(max_charge, max_steps, rwd)
+    env = init_env(max_charge, max_steps, rwd, gae_gamma)
 
     return train(num_iterations, num_transitions, num_epochs,
                  log_file, lr_upd_freq, agent, env, trial)[4]
