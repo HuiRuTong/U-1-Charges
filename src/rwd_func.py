@@ -95,6 +95,8 @@ def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef):
         if curr_coef[i]:
             is_valid = 0
             r += (-abs(curr_coef[i]) + abs(prev_coef[i])) / 10**(i+1)
+        else:
+            r += abs(prev_coef[i]) / 10**(i+1)
 
     if is_valid:
         found_charges.add(curr_charges)
