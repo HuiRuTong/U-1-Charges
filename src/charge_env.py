@@ -26,7 +26,7 @@ class Charge_Env(gym.Env):
         self.gae_gamma = gae_gamma
         self.rewards_sum = 0.0
         self.steps = 0
-        self.min_err = 2147483647.0      # Some big number to start :)
+        self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100, 1000])))
 
         # Here for reference. Unused
         # self.particles = {"q":0, "v":1, "e":2, "u":3, "l":4, "d":5}
@@ -146,6 +146,6 @@ class Charge_Env(gym.Env):
 
         self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
         self.steps = 0
-        self.min_err = 2147483647.0
+        self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100, 1000])))
 
         return self._get_obs(), self._get_info()
