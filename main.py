@@ -3,7 +3,8 @@ from src.rwd_func import *
 from src.train import *
 import torch
 
-rwd_funcs = {"abs_err_rwd":abs_err_rwd, "abs_tot_err_rwd":abs_tot_err_rwd}
+rwd_funcs = {"abs_err_rwd":abs_err_rwd, "abs_tot_err_rwd":abs_tot_err_rwd, "min_err_rwd":min_err_rwd,
+             "potential_rwd":potential_rwd}
 
 parser = argparse.ArgumentParser()
 argnames = {"num_iterations":int, "num_epochs":int, "num_transitions":int, "minibatch_size":int,
