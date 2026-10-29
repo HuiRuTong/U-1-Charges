@@ -118,14 +118,14 @@ def min_err_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, gae_
     for i in range(3):
         if curr_coef[i]:
             is_valid = 0
-            err += abs(curr_coef) / 10**(i+1)
+            err += abs(curr_coef[i]) / 10**(i+1)
 
     if is_valid:
         found_charges.add(curr_charges)
         return 15, True, 0
 
-    if err <= min_err:
-        return 5, False, err
+    if err < min_err:
+        return 0.1, False, err
     return 0, False, min_err
 
 def potential_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, gae_gamma):
