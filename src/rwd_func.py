@@ -147,4 +147,7 @@ def potential_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, ga
         curr_potential -= np.abs(curr_coef[i]) / (np.abs(curr_coef[i]) + 10**(i+1))
         prev_potential -= np.abs(prev_coef[i]) / (np.abs(prev_coef[i]) + 10**(i+1))
 
+    if is_valid:
+        found_charges.add(curr_charges)
+
     return 15*is_valid + 5*(gae_gamma*curr_potential - prev_potential), is_valid
