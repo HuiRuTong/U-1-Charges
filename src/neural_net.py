@@ -208,10 +208,13 @@ class PPO():
 
         return clip_vals
 
-    def upd(self, indices):
+    def upd(self, indices, frozen=False):
         batch_pol_loss = 0
         batch_val_loss = 0
         batch_tot_loss = 0
+        batch_exp_var = 0
+        batch_entropy = 0
+
         num_batches = self.num_transitions / self.minibatch_size
 
         for j in range(self.num_transitions // self.minibatch_size):
@@ -226,19 +229,24 @@ class PPO():
             obj = self.get_clip_obj(ratio, indices[start:end])
     
             pol_loss = -obj - self.entropy_coef*entropy
+            exp_var = 1 - torch.var(new_vals - self.rewards[indices[start:end]]) / torch.var(self.rewards[indices[start:end]])
 
             clip_vals = self.get_clip_val(new_vals, indices[start:end])
             val_loss = 0.5 * torch.mean(torch.maximum(torch.square(new_vals-self.vals_tar[indices[start:end]]),
                                                       torch.square(clip_vals-self.vals_tar[indices[start:end]])))
 
             tot_loss = pol_loss + val_loss
-    
-            self.optimizer.zero_grad()
-            tot_loss.backward()
-            self.optimizer.step()
+
+            if not frozen:
+                self.optimizer.zero_grad()
+                tot_loss.backward()
+                self.optimizer.step()
 
             batch_pol_loss += pol_loss
             batch_val_loss += val_loss
             batch_tot_loss += tot_loss
+            batch_exp_var += exp_var
+            batch_entropy += entropy
 
-        return batch_pol_loss / num_batches, batch_val_loss / num_batches, batch_tot_loss / num_batches
+        return (batch_pol_loss / num_batches, batch_val_loss / num_batches, batch_tot_loss / num_batches,
+                batch_exp_var / num_batches, entropy / num_batches)

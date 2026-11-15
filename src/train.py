@@ -23,8 +23,13 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     pol_losses = []
     val_losses = []
     tot_losses = []
+    exp_vars = []
+    entropies = []
+
     num_solutions = []
     found_charges = set()
+
+    frozen = False
 
     for i in range(num_iterations):
         print(f"Currently on iteration {i+1} of {num_iterations}")
@@ -69,19 +74,23 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
         agent.actions = torch.stack(actions).detach()
         agent.log_probs = torch.stack(log_probs).detach()
         agent.vals = torch.stack(vals).detach()
-        agent.vals_offset = torch.tensor(vals_offset)
-        agent.rewards = torch.tensor(rewards)
-        agent.ended = torch.tensor(ended)
+        agent.vals_offset = torch.tensor(vals_offset, dtype=torch.int32)
+        agent.rewards = torch.tensor(rewards, dtype=torch.float32)
+        agent.ended = torch.tensor(ended, dtype=torch.int32)
 
         agent.calc_gae_tar()
 
         batch_pol_loss = 0
         batch_val_loss = 0
         batch_tot_loss = 0
+        batch_exp_var = 0
+        batch_entropy = 0
+
         for j in range(num_epochs):
             print(f"\t Epoch {j+1} of {num_epochs}", end='')
 
-            batch_pol_loss_, batch_val_loss_, batch_tot_loss_ = agent.upd(torch.randperm(num_transitions))
+            batch_pol_loss_, batch_val_loss_, batch_tot_loss_, batch_exp_var_, batch_entropy_ = \
+            agent.upd(torch.randperm(num_transitions), frozen)
             print(f"\t policy loss: {batch_pol_loss_: .2f}, val loss: {batch_val_loss_: .2f}, tot loss: {batch_tot_loss_: .2f}")
 
             if num_epochs // (j+1) == lr_upd_freq:
@@ -90,10 +99,14 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
             batch_pol_loss += batch_pol_loss_
             batch_val_loss += batch_val_loss_
             batch_tot_loss += batch_tot_loss_
+            batch_exp_var += batch_exp_var_
+            batch_entropy += batch_entropy_
 
         pol_losses.append((batch_pol_loss / num_epochs).detach())
         val_losses.append((batch_val_loss / num_epochs).detach())
         tot_losses.append((batch_tot_loss / num_epochs).detach())
+        exp_vars.append((batch_exp_var / num_epochs).detach())
+        entropies.append((batch_entropy / num_epochs).detach())
 
         if trial is not None:
             trial.report(mean_rwd, i)
@@ -104,10 +117,21 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
         num_solutions.append(len(found_charges))
         print(f"End of iteration\nNumber of solutions found so far: {num_solutions[-1]}")
 
+    # Debugging purposes
+    """
+    if i == 750:
+        frozen = True
+
+        for p in agent.actor_critic.parameters():
+            p.requires_grad = False
+        agent.actor_critic.eval()
+    """
+
     if log_file is not None:
         log_file.close()
 
-    return num_solutions, pol_losses, val_losses, tot_losses, num_solutions[-1] if trial is not None else None
+    # how the FUCK did I not realise I already returned num_solutions!?!
+    return num_solutions, pol_losses, val_losses, tot_losses, exp_vars, entropies
 
 def plot(figname, num_iterations, num_solutions, pol_losses, val_losses, tot_losses):
     fig, axs = plt.subplots(1, 2)
@@ -120,7 +144,28 @@ def plot(figname, num_iterations, num_solutions, pol_losses, val_losses, tot_los
     axs[0].set_title("losses")
 
     axs[1].plot(itierations, num_solutions)
-    axs[1].set_title("num Sol")
+    axs[1].set_title("num sol")
+
+    if figname is not None:
+        fig.savefig(figname)
+    else:
+        plt.show()
+
+def plot_1(figname, num_iterations, num_solutions, tot_losses, exp_vars, entropies):
+    fig, axs = plt.subplots(2, 2, figsize=(10,10))
+
+    itierations = np.arange(1, num_iterations+1)
+    axs[0,0].plot(itierations, tot_losses, color="r")
+    axs[0,0].set_title("losses")
+    
+    axs[0,1].plot(itierations, exp_vars, label="explained var", color="m")
+    axs[0,1].set_title("explained var")
+    
+    axs[1,0].plot(itierations, entropies, label="entropy", color="b")
+    axs[1,0].set_title("entropy")
+
+    axs[1,1].plot(itierations, num_solutions)
+    axs[1,1].set_title("num sol")
 
     if figname is not None:
         fig.savefig(figname)

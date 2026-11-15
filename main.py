@@ -26,7 +26,7 @@ agent = init_agent(args.num_epochs, args.num_transitions, args.minibatch_size, a
                    args.max_charge)
 env = init_env(args.max_charge, args.max_steps, rwd, args.gae_gamma, args.seed)
 
-num_solutions, pol_losses, val_losses, tot_losses = train(args.num_iterations, args.num_transitions, args.num_epochs,
-                                                          log_file, args.lr_upd_freq, agent, env)[:4]
+num_solutions, pol_losses, val_losses, tot_losses, exp_vars, entropies = \
+train(args.num_iterations, args.num_transitions, args.num_epochs, log_file, args.lr_upd_freq, agent, env)
 
-plot(args.fig, args.num_iterations, num_solutions, pol_losses, val_losses, tot_losses)
+plot(args.fig, args.num_iterations, num_solutions, tot_losses, exp_vars, entropies)

@@ -12,7 +12,7 @@ def objective(trial):
     num_transitions = 200
     minibatch_size = 20
 
-    lr = trial.suggest_float("lr", 1e-8, 1e-4, log=True)
+    lr = trial.suggest_float("lr", 1e-6, 1e-2, log=True)
     lr_gamma = trial.suggest_float("lr_gamma", 0.9, 0.99, log=True)
 
     pol_clip_epsilon = trial.suggest_float("pol_clip_epsilon", 0.1, 0.5, log=True)
@@ -26,7 +26,7 @@ def objective(trial):
     max_charge = 5
     max_steps = 25
     
-    rwd = rwd_funcs[trial.suggest_categorical("rwd_func", ["abs_err_rwd", "abs_tot_err_rwd"])]
+    rwd = potential_rwd
     log_file = None
 
     agent = init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
@@ -35,7 +35,7 @@ def objective(trial):
     env = init_env(max_charge, max_steps, rwd, gae_gamma)
 
     return train(num_iterations, num_transitions, num_epochs,
-                 log_file, lr_upd_freq, agent, env, trial)[4]
+                 log_file, lr_upd_freq, agent, env, trial)[0]
 
 study = optuna.create_study(direction="maximize")
 study.optimize(objective, n_trials=100)
