@@ -171,7 +171,9 @@ class PPO():
             self.vals_tar[i] = torch.add(self.advantages[i], self.vals[j])
 
             j -= 1
-        self.advantages = (self.advantages - torch.mean(self.advantages)) / torch.std(self.advantages)
+
+        # Normalised advantages
+        self.advantages = (self.advantages - torch.mean(self.advantages)) / (torch.std(self.advantages) + 1e-8)
 
     def get_clip_obj(self, ratio, indices):
         obj = torch.tensor(0, dtype=torch.float32)
@@ -225,11 +227,12 @@ class PPO():
                                                                self.actions[indices[start:end]],
                                                                get_entropy=True)
             new_vals = self.get_action_val(self.states[indices[start:end]], value_only=True)
+            new_vals_tar = self.vals_tar[indices[start:end]]
             ratio = torch.exp(torch.sub(new_log_probs, torch.flatten(self.log_probs[indices[start:end]])))
             obj = self.get_clip_obj(ratio, indices[start:end])
     
             pol_loss = -obj - self.entropy_coef*entropy
-            exp_var = 1 - torch.var(new_vals - self.rewards[indices[start:end]]) / torch.var(self.rewards[indices[start:end]])
+            exp_var = 1 - torch.var(new_vals_tar - new_vals) / (torch.var(new_vals_tar) + 1e-8)
 
             clip_vals = self.get_clip_val(new_vals, indices[start:end])
             val_loss = 0.5 * torch.mean(torch.maximum(torch.square(new_vals-self.vals_tar[indices[start:end]]),
@@ -249,4 +252,4 @@ class PPO():
             batch_entropy += entropy
 
         return (batch_pol_loss / num_batches, batch_val_loss / num_batches, batch_tot_loss / num_batches,
-                batch_exp_var / num_batches, entropy / num_batches)
+                batch_exp_var / num_batches, batch_entropy / num_batches)

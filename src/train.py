@@ -60,11 +60,12 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
 
             if ended[-1] or j == num_transitions - 1:  # Last non terminal / truncated state also requires the next value
                 state = torch.tensor(state, dtype=torch.float32)
-                vals.append(int(not terminated) * agent.get_action_val(torch.unsqueeze(state, 0), value_only=True))   # Terminated states will hvae zero value
+                vals.append(int(not terminated) * agent.get_action_val(torch.unsqueeze(state, 0), value_only=True))   # Terminated states will have zero value
 
                 end_count += 1
 
-                env.reset()
+                if ended[-1]:
+                    env.reset()
 
         mean_rwd = env.rewards_sum / num_transitions
         print(f"Mean reward: {mean_rwd: .2f}")
@@ -93,8 +94,11 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
             agent.upd(torch.randperm(num_transitions), frozen)
             print(f"\t policy loss: {batch_pol_loss_: .2f}, val loss: {batch_val_loss_: .2f}, tot loss: {batch_tot_loss_: .2f}")
 
+            # Turned off lr scheduler
+            """
             if num_epochs // (j+1) == lr_upd_freq:
                 agent.scheduler.step()
+            """
 
             batch_pol_loss += batch_pol_loss_
             batch_val_loss += batch_val_loss_

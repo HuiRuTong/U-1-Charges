@@ -117,7 +117,7 @@ class Charge_Env(gym.Env):
 
 
                 """
-                    Repeat for duplicate solutions; also remember to change this!
+                    Penalty for duplicate solutions; also remember to change this!
                 """
 
                 
