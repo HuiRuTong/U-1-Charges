@@ -26,7 +26,14 @@ class Charge_Env(gym.Env):
         self.gae_gamma = gae_gamma
         self.rewards_sum = 0.0
         self.steps = 0
-        self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100, 1000])))
+        # OK so basically: in constructing this error, I forgot that the yukawa coef was last
+        # Not the cube coef.
+        # Not that it matters because I'm 99% sure the former is always 0 anyway
+        # Which means I probably misinterpreted that part of the paper
+        # Either way the conclusion is that I'm kinda dumb
+
+        # self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100, 1000])))
+        self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100])))
 
         # Here for reference. Unused
         # self.particles = {"q":0, "v":1, "e":2, "u":3, "l":4, "d":5}
@@ -42,12 +49,12 @@ class Charge_Env(gym.Env):
         for i in range(2, 6): 
             self.charges[i, 2] = self.charges_sum[i] - self.charges[i, 0] - self.charges[i, 1]
 
-        for i in range(3):
-            self.prev_coef[i] = self.curr_coef[i]
+        for i, curr in enumerate(self.curr_coef):
+            self.prev_coef[i] = curr
 
         self.curr_coef[0] = anomaly_quadratic(self.charges)
         self.curr_coef[1] = anomaly_cubic(self.charges)
-        self.curr_coef[2] = yukawa(self.charges_sum)
+        # self.curr_coef[2] = yukawa(self.charges_sum)
 
     def _log_charges(self, sort_red_charges, log_file):
         """
@@ -80,11 +87,11 @@ class Charge_Env(gym.Env):
     def _get_charges_tuple(self, sort_red_charges):
         return (tuple(c for c in sort_red_charges.flatten("C")))
 
-    def _get_obs(self):
-        return self.charges
+    def get_obs(self):
+        return self.charges, self.curr_coef, self.min_err, self.steps
 
-    def _get_info(self):
-        return f"quadratic coef: {self.curr_coef[0]}\ncubic coef: {self.curr_coef[1]}\nyukawa coef: {self.curr_coef[2]}"
+    def get_info(self):
+        return f"quadratic coef: {self.curr_coef[0]}\ncubic coef: {self.curr_coef[1]}\n"
 
     def step(self, action, found_charges, log_file=None):
         chosen_particle = action[0]
@@ -139,13 +146,14 @@ class Charge_Env(gym.Env):
         if (self.steps > self.max_steps):
             truncated = True
 
-        return self._get_obs(), reward, terminated, truncated, self._get_info()
+        return self.get_obs(), reward, terminated, truncated, self.get_info()
 
     def reset(self, seed=0):
         super().reset(seed=seed)
 
         self.charges, self.charges_sum, self.curr_coef, self.prev_coef = self.observation_space.sample()
         self.steps = 0
-        self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100, 1000])))
+        # self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100, 1000])))
+        self.min_err = np.sum(np.divide(np.abs(self.curr_coef), np.array([10, 100])))
 
-        return self._get_obs(), self._get_info()
+        return self.get_obs(), self.get_info()

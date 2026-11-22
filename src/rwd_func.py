@@ -8,8 +8,8 @@ def gen_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, gae_gamm
     r = 0
     is_valid = 1
 
-    for i in range(3):
-        if curr_coef[i]:
+    for curr in curr_coef:
+        if curr:
             is_valid = 0
         else:
             r += 5
@@ -30,11 +30,11 @@ def tot_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_e
     curr_tot_coef = 0
     prev_tot_coef = 0
 
-    for i in range(3):
-        if curr_coef[i]:
+    for i, curr in enumerate(curr_coef):
+        if curr:
             is_valid = 0
 
-        curr_tot_coef += np.abs(curr_coef[i])
+        curr_tot_coef += np.abs(curr)
         prev_tot_coef += np.abs(prev_coef[i])
     
     if is_valid:
@@ -52,10 +52,10 @@ def split_improvement_rwd(found_charges, curr_charges, curr_coef, prev_coef, min
     r = 0
     is_valid = 1
     
-    for i in range(3):
-        if curr_coef[i]:
+    for i, curr in enumerate(curr_coef):
+        if curr:
             is_valid = 0
-            if abs(curr_coef[i]) < abs(prev_coef[i]):
+            if abs(curr) < abs(prev_coef[i]):
                 r += 3
 
     if is_valid:
@@ -69,11 +69,11 @@ def abs_tot_err_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, 
     curr_tot_coef = 0
     prev_tot_coef = 0
 
-    for i in range(3):
-        if curr_coef[i]:
+    for i, curr in enumerate(curr_coef):
+        if curr:
             is_valid = 0
 
-        curr_tot_coef += np.abs(curr_coef[i] / 10**(i+1))
+        curr_tot_coef += np.abs(curr / 10**(i+1))
         prev_tot_coef += np.abs(prev_coef[i] / 10**(i+1))
 
     if is_valid:
@@ -90,11 +90,11 @@ def abs_err_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, gae_
     r = 0
     is_valid = 1
     
-    for i in range(3):
-        if curr_coef[i]:
+    for i, curr in enumerate(curr_coef):
+        if curr:
             is_valid = 0
         
-        r += (-abs(curr_coef[i]) + abs(prev_coef[i])) / 10**(i+1)
+        r += (-abs(curr) + abs(prev_coef[i])) / 10**(i+1)
 
     if is_valid:
         found_charges.add(curr_charges)
@@ -115,10 +115,10 @@ def min_err_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, gae_
     is_valid = 1
     err = 0
     
-    for i in range(3):
-        if curr_coef[i]:
+    for i, curr in enumerate(curr_coef):
+        if curr:
             is_valid = 0
-            err += abs(curr_coef[i]) / 10**(i+1)
+            err += abs(curr) / 10**(i+1)
 
     if is_valid:
         found_charges.add(curr_charges)
@@ -140,11 +140,11 @@ def potential_rwd(found_charges, curr_charges, curr_coef, prev_coef, min_err, ga
     curr_potential = 0
     prev_potential = 0
 
-    for i in range(3):
-        if curr_coef[i]:
+    for i, curr in enumerate(curr_coef):
+        if curr:
             is_valid = 0
 
-        curr_potential -= np.abs(curr_coef[i]) / (np.abs(curr_coef[i]) + 10**(i+1))
+        curr_potential -= np.abs(curr) / (np.abs(curr) + 10**(i+1))
         prev_potential -= np.abs(prev_coef[i]) / (np.abs(prev_coef[i]) + 10**(i+1))
 
     if is_valid:

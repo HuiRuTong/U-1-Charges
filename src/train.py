@@ -18,7 +18,7 @@ def init_agent(num_epochs, num_transitions, minibatch_size, lr, lr_gamma,
 def init_env(max_charge, max_steps, rwd, gae_gamma, seed=None):
     return Charge_Env(max_charge, max_steps, rwd, gae_gamma, seed)
 
-def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
+def train(num_iterations, num_transitions, num_epochs, max_steps, log_file, lr_upd_freq,
           agent, env, trial=None):
     pol_losses = []
     val_losses = []
@@ -34,7 +34,7 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
     for i in range(num_iterations):
         print(f"Currently on iteration {i+1} of {num_iterations}")
 
-        states = []
+        observations = []
         actions = []
         log_probs = []
         rewards = []
@@ -44,34 +44,35 @@ def train(num_iterations, num_transitions, num_epochs, log_file, lr_upd_freq,
 
         end_count = 0
         for j in range(num_transitions):
-            state = torch.tensor(env.charges, dtype=torch.float32)
-            states.append(state)
+            observation = Observation(*env.get_obs(), max_steps)
+            observations.append(observation.get_obs_tensor())
 
-            action, log_prob, val = agent.get_action_val(torch.unsqueeze(state, 0))
+            action, log_prob, val = agent.get_action_val(torch.unsqueeze(observations[-1], 0))
             actions.append(action)
             log_probs.append(log_prob)
             vals.append(val)
             vals_offset.append(end_count)
 
-            state, reward, terminated, truncated, info = env.step(action, found_charges, log_file)
+            observation, reward, terminated, truncated, info = env.step(action, found_charges, log_file)
             rewards.append(reward)
 
             ended.append(int(terminated or truncated))
 
             if ended[-1] or j == num_transitions - 1:  # Last non terminal / truncated state also requires the next value
-                state = torch.tensor(state, dtype=torch.float32)
-                vals.append(int(not terminated) * agent.get_action_val(torch.unsqueeze(state, 0), value_only=True))   # Terminated states will have zero value
+                observation = Observation(*env.get_obs(), max_steps).get_obs_tensor()
+                vals.append(int(not terminated) * agent.get_action_val(torch.unsqueeze(observation, 0), value_only=True))
+                # Terminated states will have zero value
 
                 end_count += 1
 
-                if ended[-1]:
+                if ended[-1]:   # Only reset the environment if an attempt actually ended
                     env.reset()
 
         mean_rwd = env.rewards_sum / num_transitions
         print(f"Mean reward: {mean_rwd: .2f}")
         env.rewards_sum = 0.0
 
-        agent.states = torch.stack(states).detach()
+        agent.observations = torch.stack(observations).detach()
         agent.actions = torch.stack(actions).detach()
         agent.log_probs = torch.stack(log_probs).detach()
         agent.vals = torch.stack(vals).detach()

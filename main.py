@@ -3,6 +3,8 @@ from src.rwd_func import *
 from src.train import *
 import torch
 
+# 1000 5 200 20 1e-4 1 0.49 0.33 5 0.95 0.37 0.14 5 150 min_err_rwd --seed 0 --log ./test.txt --fig ./test.png
+
 rwd_funcs = {"abs_err_rwd":abs_err_rwd, "abs_tot_err_rwd":abs_tot_err_rwd, "min_err_rwd":min_err_rwd,
              "potential_rwd":potential_rwd}
 
@@ -27,6 +29,6 @@ agent = init_agent(args.num_epochs, args.num_transitions, args.minibatch_size, a
 env = init_env(args.max_charge, args.max_steps, rwd, args.gae_gamma, args.seed)
 
 num_solutions, pol_losses, val_losses, tot_losses, exp_vars, entropies = \
-train(args.num_iterations, args.num_transitions, args.num_epochs, log_file, args.lr_upd_freq, agent, env)
+train(args.num_iterations, args.num_transitions, args.num_epochs, args.max_steps, log_file, args.lr_upd_freq, agent, env)
 
 plot(args.fig, args.num_iterations, num_solutions, tot_losses, exp_vars, entropies)

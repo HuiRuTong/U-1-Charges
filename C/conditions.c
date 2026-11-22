@@ -2,7 +2,6 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <Python.h>
 #include <numpy/arrayobject.h>
-#include <math.h>
 
 static PyObject *anomaly_quadratic(PyObject *self, PyObject *args) {
     PyArrayObject *charges;
@@ -47,6 +46,8 @@ static PyObject *anomaly_cubic(PyObject *self, PyObject *args) {
     return PyLong_FromLong(coeff);
 }
 
+// If nothing's wrong, this should always be 0, making it redundant
+/*
 static PyObject *yukawa(PyObject *self, PyObject *args) {
     PyArrayObject *charges_sum;
     int q_sum, v_sum, e_sum, u_sum, l_sum, d_sum;
@@ -64,6 +65,7 @@ static PyObject *yukawa(PyObject *self, PyObject *args) {
 
     return PyLong_FromLong(-q_sum - v_sum - e_sum - u_sum + l_sum - d_sum);
 }
+*/
 
 static PyObject *multiple_check(PyObject *self, PyObject *args) {
     // Assumes charges have already been sorted w/ _sort_abs
@@ -105,8 +107,10 @@ static PyMethodDef callables[] = {
     {"anomaly_cubic", anomaly_cubic, METH_VARARGS,
      "Checks if the individual charges fulfill the cubic conditions"},
             
+    /*
     {"yukawa", yukawa, METH_VARARGS,
      "Checks yukawa stuff"},
+    */
                 
     {"multiple_check", multiple_check, METH_VARARGS,
      "Checks if a set of charges is equivalent to a known solution"},

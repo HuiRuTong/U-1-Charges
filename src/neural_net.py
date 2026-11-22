@@ -1,39 +1,60 @@
 import torch
 from src.charge_env import *
 
+class Observation():
+    coef_scales = [9, 4.6]      # Mean values obtained from 30k samples
+    err_scale = 4.7
+
+    def __init__(self, state, coef, min_err, step, max_steps):
+        # This is just a conversion function disguised as a class
+        # I thought it'd be semantically weird to just shove a random function here
+        # Hence this
+
+        self.state = state.flatten()
+        # self.quad_coef = coef[0] / (self.coef_scales[0] + 1e-8)
+        # self.cube_coef = coef[1] / (self.coef_scales[1] + 1e-8)
+        self.quad_coef = coef[0] / (self.coef_scales[0] + coef[0])
+        self.cube_coef = coef[1] / (self.coef_scales[1] + coef[1])
+
+        self.min_err = min_err / self.err_scale
+        self.step = step / max_steps
+
+    def get_obs_tensor(self):
+        return torch.tensor((*self.state, self.quad_coef, self.cube_coef, self.min_err, self.step), dtype=torch.float32)
+
 class ActorCritic(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.encode = torch.nn.Sequential(
-            torch.nn.Linear(3, 256),
+            torch.nn.Linear(22, 256),
         )
 
         self.choose_particle = torch.nn.Sequential(
-            torch.nn.Linear(6*256, 512),
+            torch.nn.Linear(256, 512),
             torch.nn.ReLU(),
             torch.nn.Linear(512, 6)
         )
 
         self.choose_generation = torch.nn.Sequential(
-            torch.nn.Linear(6*256, 512),
+            torch.nn.Linear(256, 512),
             torch.nn.ReLU(),
             torch.nn.Linear(512, 3)
         )
 
         self.choose_mod = torch.nn.Sequential(
-            torch.nn.Linear(6*256, 512),
+            torch.nn.Linear(256, 512),
             torch.nn.ReLU(),
             torch.nn.Linear(512, 2)
         )
 
         self.critic = torch.nn.Sequential(
-            torch.nn.Linear(6*256, 512),
+            torch.nn.Linear(256, 512),
             torch.nn.ReLU(),
             torch.nn.Linear(512, 1)
         )
 
-    def forward(self, states, action_only=False, value_only=False):
-        encoded = self.encode(states)
+    def forward(self, observations, action_only=False, value_only=False):
+        encoded = self.encode(observations)
         reshaped = torch.reshape(encoded, (len(encoded), -1,))
         # An alternative would be to take the mean of the logits
         # over all 6 particles but that feels really wrong
@@ -74,7 +95,7 @@ class PPO():
         self.optimizer = torch.optim.Adam(self.actor_critic.parameters(), self.lr)
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 20, self.lr_gamma)
 
-        self.states = []
+        self.observations = []
         self.actions = []
         self.log_probs = []
         self.vals = []
@@ -85,14 +106,14 @@ class PPO():
         self.advantages = torch.zeros(self.num_transitions)
         self.vals_tar = torch.zeros(self.num_transitions)
 
-    def get_action_val(self, states, action_only=False, value_only=False, get_entropy=False):
+    def get_action_val(self, observations, action_only=False, value_only=False, get_entropy=False):
         if action_only:
-            particle_logits, generation_logits, mod_logits = self.actor_critic.forward(states, action_only=True)
+            particle_logits, generation_logits, mod_logits = self.actor_critic.forward(observations, action_only=True)
             ret = ()
         elif value_only:
-            return torch.flatten(self.actor_critic.forward(states, value_only=True))
+            return torch.flatten(self.actor_critic.forward(observations, value_only=True))
         else:
-            particle_logits, generation_logits, mod_logits, val = self.actor_critic.forward(states)
+            particle_logits, generation_logits, mod_logits, val = self.actor_critic.forward(observations)
             ret = (torch.flatten(val),)
     
         particle_distr = torch.distributions.Categorical(logits=particle_logits)
@@ -100,7 +121,7 @@ class PPO():
         particle_log_prob = particle_distr.log_prob(chosen_particle)
 
         # For dependent 3rd gen charges
-        generation_mask = torch.concat((torch.zeros((states.size()[0], 2), dtype=torch.bool),
+        generation_mask = torch.concat((torch.zeros((observations.size()[0], 2), dtype=torch.bool),
                                         torch.unsqueeze(chosen_particle >= 2, dim=-1)), dim=-1)
         generation_logits.masked_fill_(generation_mask, -torch.inf)
 
@@ -110,10 +131,10 @@ class PPO():
 
         # To prevent going oob
         # Note that the 3rd gen charges CAN STILL EXCEED the bounds
-        mod_mask = torch.stack((states[torch.arange(states.size()[0]),
-                                       chosen_particle, chosen_generation] <= -self.max_charge,
-                                states[torch.arange(states.size()[0]),
-                                       chosen_particle, chosen_generation] >= self.max_charge),
+        mod_mask = torch.stack((observations[torch.arange(observations.size()[0]),
+                                               6*chosen_generation+chosen_particle] <= -self.max_charge,
+                                observations[torch.arange(observations.size()[0]),
+                                               6*chosen_generation+chosen_particle] >= self.max_charge),
                                 dim=-1)
         mod_logits.masked_fill_(mod_mask, -torch.inf)
 
@@ -127,13 +148,13 @@ class PPO():
             ret += (torch.mean(torch.stack((particle_distr.entropy(), generation_distr.entropy(), mod_distr.entropy()))),)
         return ret  # I got sick of writing 5 billions ifs
 
-    def get_action_log_probs(self, states, actions, get_entropy=False):
-        particle_logits, generation_logits, mod_logits = self.actor_critic.forward(states, action_only=True)
+    def get_action_log_probs(self, observations, actions, get_entropy=False):
+        particle_logits, generation_logits, mod_logits = self.actor_critic.forward(observations, action_only=True)
         particle_distr = torch.distributions.Categorical(logits=particle_logits)
         chosen_particle = actions[:, 0]
         particle_log_prob = particle_distr.log_prob(chosen_particle)
 
-        generation_mask = torch.concat((torch.zeros((states.size()[0], 2), dtype=torch.bool),
+        generation_mask = torch.concat((torch.zeros((observations.size()[0], 2), dtype=torch.bool),
                                         torch.unsqueeze(chosen_particle >= 2, dim=-1)), dim=-1)
         generation_logits.masked_fill_(generation_mask, -torch.inf)
 
@@ -141,10 +162,10 @@ class PPO():
         chosen_generation = actions[:, 1]
         generation_log_prob = generation_distr.log_prob(chosen_generation)
 
-        mod_mask = torch.stack((states[torch.arange(states.size()[0]),
-                                       chosen_particle, chosen_generation] <= -self.max_charge,
-                                states[torch.arange(states.size()[0]),
-                                       chosen_particle, chosen_generation] >= self.max_charge),
+        mod_mask = torch.stack((observations[torch.arange(observations.size()[0]),
+                                             6*chosen_generation+chosen_particle] <= -self.max_charge,
+                                observations[torch.arange(observations.size()[0]),
+                                             6*chosen_generation+chosen_particle] >= self.max_charge),
                                 dim=-1)
         mod_logits.masked_fill_(mod_mask, -torch.inf)
 
@@ -195,8 +216,7 @@ class PPO():
         clip_vals = torch.zeros((self.minibatch_size,))
 
         for j, i in enumerate(indices):
-            # Add on the number of terminations / truncation
-            # encountered up to the ith element in vals
+            # Add on the number of terminations / truncation encountered up to the ith element in vals
             # this works because if S0, S1, S3, S4, S6 and V0, V1, V2, V3, V4, V5, V6
             # For vals to match with states and therefore new_vals,
             # its indices should be 0, 1, 3, 4, 6 as opposed to 0, 1, 2, 3, 4
@@ -223,10 +243,10 @@ class PPO():
             start = j * self.minibatch_size
             end = (j+1) * self.minibatch_size
 
-            new_log_probs, entropy = self.get_action_log_probs(self.states[indices[start:end]],
+            new_log_probs, entropy = self.get_action_log_probs(self.observations[indices[start:end]],
                                                                self.actions[indices[start:end]],
                                                                get_entropy=True)
-            new_vals = self.get_action_val(self.states[indices[start:end]], value_only=True)
+            new_vals = self.get_action_val(self.observations[indices[start:end]], value_only=True)
             new_vals_tar = self.vals_tar[indices[start:end]]
             ratio = torch.exp(torch.sub(new_log_probs, torch.flatten(self.log_probs[indices[start:end]])))
             obj = self.get_clip_obj(ratio, indices[start:end])
