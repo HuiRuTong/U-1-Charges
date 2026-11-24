@@ -3,9 +3,9 @@ from src.charge_env import *
 
 class Observation():
     coef_scales = [34.181, 128.542]     # Mean values obtained from 50k samples
-    # coef_scales = [1e4, 1e4]          # Median power of 10 (yes it was EXACTLY 4)
+    # coef_scales = [28, 90]            # Median power of 10 ... (is it EXACTLY 28 and 90)
     err_scale = 4.704                   # Mean value obtained ...
-    # err_scale = 3.594                 # Median of the err averaged over ...
+    # err_scale = 4.08                   # Median of the err averaged over ...
 
     def __init__(self, state, coef, min_err, step, max_steps):
         # This is just a conversion function disguised as a class
