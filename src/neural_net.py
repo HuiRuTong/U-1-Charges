@@ -2,19 +2,21 @@ import torch
 from src.charge_env import *
 
 class Observation():
-    coef_scales = [9, 4.6]      # Mean values obtained from 30k samples
-    err_scale = 4.7
+    coef_scales = [34.181, 128.542]     # Mean values obtained from 50k samples
+    # coef_scales = [1e4, 1e4]          # Median power of 10 (yes it was EXACTLY 4)
+    err_scale = 4.704                   # Mean value obtained ...
+    # err_scale = 3.594                 # Median of the err averaged over ...
 
     def __init__(self, state, coef, min_err, step, max_steps):
         # This is just a conversion function disguised as a class
         # I thought it'd be semantically weird to just shove a random function here
         # Hence this
 
-        self.state = state.flatten()
+        self.state = state.flatten("C")
         # self.quad_coef = coef[0] / (self.coef_scales[0] + 1e-8)
         # self.cube_coef = coef[1] / (self.coef_scales[1] + 1e-8)
-        self.quad_coef = coef[0] / (self.coef_scales[0] + coef[0])
-        self.cube_coef = coef[1] / (self.coef_scales[1] + coef[1])
+        self.quad_coef = coef[0] / (self.coef_scales[0] + np.abs(coef[0]))
+        self.cube_coef = coef[1] / (self.coef_scales[1] + np.abs(coef[1]))
 
         self.min_err = min_err / self.err_scale
         self.step = step / max_steps
@@ -132,9 +134,9 @@ class PPO():
         # To prevent going oob
         # Note that the 3rd gen charges CAN STILL EXCEED the bounds
         mod_mask = torch.stack((observations[torch.arange(observations.size()[0]),
-                                               6*chosen_generation+chosen_particle] <= -self.max_charge,
+                                               3*chosen_particle+chosen_generation] <= -self.max_charge,
                                 observations[torch.arange(observations.size()[0]),
-                                               6*chosen_generation+chosen_particle] >= self.max_charge),
+                                               3*chosen_particle+chosen_generation] >= self.max_charge),
                                 dim=-1)
         mod_logits.masked_fill_(mod_mask, -torch.inf)
 
@@ -163,9 +165,9 @@ class PPO():
         generation_log_prob = generation_distr.log_prob(chosen_generation)
 
         mod_mask = torch.stack((observations[torch.arange(observations.size()[0]),
-                                             6*chosen_generation+chosen_particle] <= -self.max_charge,
+                                             3*chosen_particle+chosen_generation] <= -self.max_charge,
                                 observations[torch.arange(observations.size()[0]),
-                                             6*chosen_generation+chosen_particle] >= self.max_charge),
+                                             3*chosen_particle+chosen_generation] >= self.max_charge),
                                 dim=-1)
         mod_logits.masked_fill_(mod_mask, -torch.inf)
 

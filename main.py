@@ -31,4 +31,4 @@ env = init_env(args.max_charge, args.max_steps, rwd, args.gae_gamma, args.seed)
 num_solutions, pol_losses, val_losses, tot_losses, exp_vars, entropies = \
 train(args.num_iterations, args.num_transitions, args.num_epochs, args.max_steps, log_file, args.lr_upd_freq, agent, env)
 
-plot(args.fig, args.num_iterations, num_solutions, tot_losses, exp_vars, entropies)
+plot_1(args.fig, args.num_iterations, num_solutions, tot_losses, exp_vars, entropies)

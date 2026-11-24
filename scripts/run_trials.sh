@@ -38,7 +38,7 @@ for ((i = 0; i < ${#identifiers[@]}; i++)); do
         python3 "$curr_dir/..//main.py" "$num_iterations" "$num_epochs" "$num_transitions" "$minibatch_size"    \
                 "${lr[$i]}" "${lr_gamma[$i]}" "${pol_clip_epsilon[$i]}" "${val_clip_epsilon[$i]}"               \
                 "5" "${gae_gamma[$i]}" "${lmbda[$i]}" "${entropy_coef[$i]}" "$max_charge" "$max_steps"          \
-                "$rwd" "--seed" "$j" "--log" "$curr_dir/../found_charges/${identifiers[$i]}_$j.txt"             \
+                "${rwd[$i]}" "--seed" "$j" "--log" "$curr_dir/../found_charges/${identifiers[$i]}_$j.txt"             \
                 "--fig" "$curr_dir/../figures/${identifiers[$i]}_$j.png"
         echo "Finished trial $((j+1))"
         echo

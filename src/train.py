@@ -93,7 +93,7 @@ def train(num_iterations, num_transitions, num_epochs, max_steps, log_file, lr_u
 
             batch_pol_loss_, batch_val_loss_, batch_tot_loss_, batch_exp_var_, batch_entropy_ = \
             agent.upd(torch.randperm(num_transitions), frozen)
-            print(f"\t policy loss: {batch_pol_loss_: .2f}, val loss: {batch_val_loss_: .2f}, tot loss: {batch_tot_loss_: .2f}")
+            print(f"\t pol loss: {batch_pol_loss_: .2f}, val loss: {batch_val_loss_: .2f}, tot loss: {batch_tot_loss_: .2f}")
 
             # Turned off lr scheduler
             """
@@ -142,7 +142,7 @@ def plot(figname, num_iterations, num_solutions, pol_losses, val_losses, tot_los
     fig, axs = plt.subplots(1, 2)
 
     itierations = np.arange(1, num_iterations+1)
-    axs[0].plot(itierations, pol_losses, label="policy loss", color="r")
+    axs[0].plot(itierations, pol_losses, label="pol loss", color="r")
     axs[0].plot(itierations, val_losses, label="val loss", color="b")
     axs[0].plot(itierations, tot_losses, label="tot loss", color="m")
     axs[0].legend(loc="upper right")

@@ -143,7 +143,7 @@ class Charge_Env(gym.Env):
 
         self.rewards_sum += reward
         self.steps += 1
-        if (self.steps > self.max_steps):
+        if (self.steps >= self.max_steps):
             truncated = True
 
         return self.get_obs(), reward, terminated, truncated, self.get_info()
