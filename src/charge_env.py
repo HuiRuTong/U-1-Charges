@@ -70,14 +70,14 @@ class Charge_Env(gym.Env):
     def _get_sort_red_charges(self):
         sorted_charges = get_sorted_charges(self.charges).flatten("C")
 
-        for c in sorted_charges:    # Ensures that all solutions start with a + charge which makes checking easier
-            if not c:
+        for charge in sorted_charges:    # Ensures that all solutions start with a + charge which makes checking easier
+            if not charge:
                 continue
             else:
-                if c < 0:
+                if charge < 0:
                     sorted_charges = -sorted_charges
                 break
-                    
+
         gcd = np.gcd.reduce(sorted_charges)
         sorted_charges = np.reshape(sorted_charges, (6, 3))
         if gcd != 1:
